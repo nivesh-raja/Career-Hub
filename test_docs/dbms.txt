@@ -1,0 +1,99 @@
+DATABASE MANAGEMENT SYSTEMS - COMPLETE REFERENCE
+
+1. RELATIONAL MODEL
+- Tables (Relations), Rows (Tuples), Columns (Attributes)
+- Primary Key: uniquely identifies each row
+- Foreign Key: references primary key in another table
+- Candidate Key: minimal superkey
+- Composite Key: key using multiple attributes
+
+2. SQL - STRUCTURED QUERY LANGUAGE
+DDL: CREATE, ALTER, DROP, TRUNCATE
+DML: SELECT, INSERT, UPDATE, DELETE
+DCL: GRANT, REVOKE
+TCL: COMMIT, ROLLBACK, SAVEPOINT
+
+3. NORMALIZATION
+1NF: Atomic values, no repeating groups
+2NF: 1NF + no partial dependency on composite primary key
+3NF: 2NF + no transitive dependency
+BCNF: 3NF + every determinant is a candidate key
+
+Anomalies avoided:
+- Insertion anomaly
+- Deletion anomaly
+- Update anomaly
+
+4. INDEXING AND B+ TREES
+
+B+ Tree Index:
+- All data stored in leaf nodes
+- Internal nodes only hold keys for navigation
+- Leaf nodes linked as a doubly-linked list (range queries)
+- Height balanced: O(log n) search, insert, delete
+- Widely used in MySQL (InnoDB), PostgreSQL, Oracle
+
+B+ Tree Properties:
+- Order m: each node has at most m children
+- Each internal node has at least ceil(m/2) children
+- All leaves at same depth
+- Leaf nodes contain actual data records or pointers
+
+B+ Tree vs B Tree:
+- B Tree: data in all nodes (internal + leaf)
+- B+ Tree: data only in leaves; faster range scans via leaf linked list
+- B+ Tree preferred in databases for range queries
+
+Hash Index:
+- O(1) lookup for exact match
+- No range queries support
+- Good for equality joins
+
+Clustered vs Non-clustered:
+- Clustered: data physically sorted by index key (one per table)
+- Non-clustered: separate structure pointing to data rows
+
+5. TRANSACTIONS AND ACID
+- Atomicity: all or nothing
+- Consistency: valid state before and after
+- Isolation: concurrent transactions don't interfere
+- Durability: committed data persists
+
+6. CONCURRENCY CONTROL
+- Two-Phase Locking (2PL): growing phase → shrinking phase
+  - Strict 2PL: hold all locks until commit
+- Timestamp-based: older wins by default
+- MVCC (Multi-Version Concurrency Control): readers don't block writers
+
+Isolation Levels:
+- Read Uncommitted: dirty reads allowed
+- Read Committed: no dirty reads
+- Repeatable Read: no non-repeatable reads
+- Serializable: full isolation, phantoms prevented
+
+7. RECOVERY TECHNIQUES
+- Write-Ahead Log (WAL): log before data write
+- UNDO: rollback uncommitted changes
+- REDO: replay committed changes after crash
+- Checkpoints: reduce recovery time
+
+8. SQL JOINS
+- INNER JOIN: matching rows in both tables
+- LEFT JOIN: all from left + matching from right
+- RIGHT JOIN: all from right + matching from left
+- FULL OUTER JOIN: all rows from both
+- CROSS JOIN: cartesian product
+- SELF JOIN: table joined with itself
+
+9. QUERY OPTIMIZATION
+- Query plan: tree of relational algebra operations
+- Cost estimation: I/O + CPU + network
+- Heuristics: push selections down, project early
+- Statistics: histograms, cardinality estimates
+
+10. NoSQL DATABASES
+- Document stores: MongoDB (BSON documents)
+- Key-value: Redis (in-memory, caching)
+- Column-family: Cassandra (distributed, wide-column)
+- Graph DB: Neo4j (nodes and edges)
+- CAP theorem: Consistency, Availability, Partition tolerance — pick 2

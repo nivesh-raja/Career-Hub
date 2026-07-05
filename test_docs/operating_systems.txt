@@ -1,0 +1,86 @@
+OPERATING SYSTEMS - COMPREHENSIVE STUDY GUIDE
+
+1. PROCESS MANAGEMENT
+A process is a program in execution. Each process has:
+- PID (Process ID)
+- PCB (Process Control Block) storing state, registers, memory info
+- States: New → Ready → Running → Waiting → Terminated
+
+2. THREADS
+- Lightweight process sharing address space
+- Kernel threads: managed by OS
+- User threads: managed by libraries (faster context switch)
+- Multithreading models: Many-to-One, One-to-One, Many-to-Many
+
+3. CPU SCHEDULING ALGORITHMS
+- FCFS (First Come First Served): non-preemptive, simple, convoy effect
+- SJF (Shortest Job First): optimal average waiting time, needs burst time prediction
+- Round Robin: preemptive, time quantum, suitable for time-sharing
+- Priority Scheduling: can cause starvation, aging as solution
+- Multilevel Queue: separate queues for foreground/background
+- Multilevel Feedback Queue: processes can move between queues
+
+4. DEADLOCK
+Deadlock occurs when processes wait indefinitely for resources held by each other.
+
+NECESSARY CONDITIONS (Coffman Conditions):
+1. Mutual Exclusion: at least one resource is non-sharable
+2. Hold and Wait: process holds one resource and waits for more
+3. No Preemption: resources cannot be forcibly removed
+4. Circular Wait: P1 → P2 → P3 → P1 cycle
+
+DEADLOCK PREVENTION:
+- Mutual Exclusion: make resources sharable (e.g., read-only files)
+- Hold and Wait: require all resources upfront OR release before new request
+- No Preemption: allow preemption of resources (save/restore state)
+- Circular Wait: impose ordering on resource types; always request in order
+
+DEADLOCK AVOIDANCE:
+- Banker's Algorithm: check safe state before granting resources
+- Safe state: there exists a sequence where all processes can complete
+
+DEADLOCK DETECTION & RECOVERY:
+- Resource allocation graph cycle detection
+- Recovery: process termination or resource preemption
+
+5. MEMORY MANAGEMENT
+- Contiguous allocation: base+limit registers
+- Paging: fixed-size frames, page table, no external fragmentation
+- Segmentation: variable-size segments (code, data, stack)
+- Virtual memory: demand paging, page faults
+- Page replacement: FIFO, LRU, Optimal, Clock algorithm
+- Thrashing: excessive page faults, reduce multiprogramming degree
+
+6. FILE SYSTEMS
+- File allocation: contiguous, linked, indexed
+- Directory structures: flat, hierarchical, acyclic graph
+- Journaling: crash consistency (ext3, ext4, NTFS)
+- Inodes: store metadata in Unix/Linux
+
+7. INTER-PROCESS COMMUNICATION (IPC)
+- Pipes: unidirectional byte stream between related processes
+- Named pipes (FIFOs): between unrelated processes
+- Message queues: structured messages
+- Shared memory: fastest IPC, requires synchronization
+- Semaphores: synchronization primitive (binary/counting)
+- Monitors: high-level synchronization construct
+
+8. SYNCHRONIZATION
+- Race condition: outcome depends on execution order
+- Critical section: code accessing shared resources
+- Mutex: mutual exclusion lock
+- Semaphore: wait() / signal() (P/V operations)
+- Peterson's solution: software solution for 2 processes
+- Dining philosophers problem: deadlock and starvation demonstration
+
+9. DISK SCHEDULING
+- FCFS: simple but high seek time
+- SSTF (Shortest Seek Time First): starvation possible
+- SCAN (Elevator): move in one direction, reverse
+- C-SCAN: move in one direction, jump back
+- C-LOOK: stop at last request, jump back
+
+10. VIRTUAL MACHINES
+- Type 1 hypervisor: direct on hardware (VMware ESXi, Hyper-V)
+- Type 2 hypervisor: runs on host OS (VirtualBox, VMware Workstation)
+- Containers: share host OS kernel (Docker)

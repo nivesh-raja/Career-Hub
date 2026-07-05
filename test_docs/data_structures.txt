@@ -1,0 +1,106 @@
+DATA STRUCTURES AND ALGORITHMS - COMPLETE GUIDE
+
+1. ARRAYS
+- Fixed size, contiguous memory
+- Random access O(1), insertion/deletion O(n)
+- Dynamic arrays (ArrayList): amortized O(1) append
+
+2. LINKED LISTS
+- Singly linked: node → node → null
+- Doubly linked: null ← node ↔ node → null
+- Circular: tail.next = head
+- O(1) insert/delete at known node, O(n) search
+
+3. STACKS
+- LIFO (Last In, First Out)
+- push(), pop(), peek() — all O(1)
+- Uses: function call stack, expression evaluation, DFS, undo operations
+
+4. QUEUES
+- FIFO (First In, First Out)
+- enqueue(), dequeue() — O(1) with proper implementation
+- Deque: double-ended queue
+- Priority Queue: O(log n) operations using heap
+
+5. BINARY SEARCH
+Binary Search Algorithm:
+- Precondition: sorted array
+- Compare target with middle element
+- If equal: found
+- If less: search left half
+- If greater: search right half
+- Time: O(log n), Space: O(1) iterative / O(log n) recursive
+
+Binary Search vs Linear Search:
+| Property       | Binary Search | Linear Search |
+|----------------|---------------|---------------|
+| Precondition   | Sorted array  | None          |
+| Time           | O(log n)      | O(n)          |
+| Space          | O(1)          | O(1)          |
+| Data structure | Array only    | Array or List |
+| Best case      | O(1)          | O(1)          |
+
+6. TREES
+Binary Tree: each node has ≤ 2 children
+BST (Binary Search Tree): left < root < right
+- Search, insert, delete: O(h) where h = height
+- Balanced BST: O(log n); degenerate (linked list): O(n)
+
+AVL Tree: self-balancing BST
+- Balance factor = |height(left) - height(right)| ≤ 1
+- Rotations: LL, RR, LR, RL
+- O(log n) guaranteed
+
+Red-Black Tree:
+- Self-balancing, used in Java TreeMap/TreeSet
+- Less strictly balanced than AVL, fewer rotations on insert
+- O(log n) guaranteed
+
+7. HEAPS
+- Min-Heap: parent ≤ children (root is minimum)
+- Max-Heap: parent ≥ children (root is maximum)
+- Stored as array: parent at i, children at 2i+1 and 2i+2
+- Heapify: O(n), insert/delete: O(log n)
+- Heap Sort: O(n log n) in-place
+
+8. GRAPH ALGORITHMS
+BFS (Breadth-First Search):
+- Level-by-level traversal, uses Queue
+- Shortest path in unweighted graph
+- O(V + E)
+
+DFS (Depth-First Search):
+- Explores as far as possible before backtracking, uses Stack/recursion
+- Topological sort, cycle detection, SCC
+- O(V + E)
+
+Dijkstra's Algorithm:
+- Single-source shortest path for non-negative weights
+- Uses min-heap priority queue
+- O((V + E) log V) with binary heap
+
+Bellman-Ford:
+- Single-source shortest path, handles negative weights
+- Detects negative cycles
+- O(V * E)
+
+Floyd-Warshall:
+- All-pairs shortest path
+- O(V³) dynamic programming
+
+9. SORTING ALGORITHMS
+| Algorithm      | Best     | Average  | Worst    | Space  | Stable |
+|----------------|----------|----------|----------|--------|--------|
+| Bubble Sort    | O(n)     | O(n²)    | O(n²)    | O(1)   | Yes    |
+| Selection Sort | O(n²)    | O(n²)    | O(n²)    | O(1)   | No     |
+| Insertion Sort | O(n)     | O(n²)    | O(n²)    | O(1)   | Yes    |
+| Merge Sort     | O(n logn)| O(n logn)| O(n logn)| O(n)   | Yes    |
+| Quick Sort     | O(n logn)| O(n logn)| O(n²)    | O(logn)| No     |
+| Heap Sort      | O(n logn)| O(n logn)| O(n logn)| O(1)   | No     |
+| Counting Sort  | O(n+k)   | O(n+k)   | O(n+k)   | O(k)   | Yes    |
+
+10. DYNAMIC PROGRAMMING
+- Optimal substructure + overlapping subproblems
+- Memoization (top-down) vs Tabulation (bottom-up)
+- Classic problems: Fibonacci, LCS, LIS, Knapsack, Matrix Chain Multiplication
+- Divide and Conquer vs DP: D&C subproblems don't overlap

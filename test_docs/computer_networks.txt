@@ -1,0 +1,91 @@
+COMPUTER NETWORKS - COMPREHENSIVE NOTES
+
+1. OSI MODEL (7 LAYERS)
+Layer 7 - Application: HTTP, FTP, SMTP, DNS, DHCP
+Layer 6 - Presentation: encryption, compression, JPEG, SSL/TLS
+Layer 5 - Session: session management, NetBIOS, RPC
+Layer 4 - Transport: TCP, UDP, port numbers, segmentation
+Layer 3 - Network: IP, ICMP, routing, logical addressing
+Layer 2 - Data Link: MAC addresses, Ethernet, switches, framing
+Layer 1 - Physical: bits, cables, hubs, radio waves
+
+2. TCP vs UDP
+TCP (Transmission Control Protocol):
+- Connection-oriented (3-way handshake: SYN, SYN-ACK, ACK)
+- Reliable delivery with acknowledgments (ACKs)
+- Flow control: sliding window
+- Congestion control: slow start, congestion avoidance, fast retransmit
+- Ordered delivery, sequence numbers
+- Use: HTTP, FTP, email, file transfer
+
+UDP (User Datagram Protocol):
+- Connectionless, no handshake
+- No reliability guarantee, no ACKs
+- Low latency, minimal overhead
+- Use: DNS, VoIP, video streaming, gaming, DHCP
+
+3. IP ADDRESSING
+IPv4: 32-bit, dotted decimal notation (e.g., 192.168.1.1)
+IPv6: 128-bit, hexadecimal (e.g., 2001:db8::1)
+
+Subnetting:
+- Subnet mask divides network/host portions
+- CIDR notation: 192.168.1.0/24
+- Private ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+- NAT translates private to public addresses
+
+4. ROUTING ALGORITHMS
+
+Binary Search vs Routing Algorithms:
+
+Binary Search:
+- Requires sorted array, O(log n) time
+- Used in lookup tables, prefix matching
+
+Routing Algorithms:
+- Distance Vector (Bellman-Ford): count to infinity problem, RIP protocol
+- Link State (Dijkstra's): complete topology knowledge, OSPF protocol
+- Path Vector (BGP): used between autonomous systems, internet scale
+- Longest Prefix Match: used in IP routing tables (can use binary trie)
+
+Dijkstra's vs Bellman-Ford in routing:
+- Dijkstra: faster O((V+E)logV) but requires non-negative weights, OSPF
+- Bellman-Ford: handles negative weights, O(VE), used in distance-vector protocols
+
+5. HTTP and HTTPS
+- HTTP/1.1: persistent connections, pipelining
+- HTTP/2: multiplexing, header compression, server push
+- HTTP/3: QUIC protocol (UDP-based), lower latency
+- HTTPS: HTTP over TLS/SSL, certificate-based authentication
+
+6. DNS (Domain Name System)
+- Hierarchical distributed database
+- Root → TLD (.com, .org) → Authoritative → Local resolver
+- Record types: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), NS (name server)
+- TTL controls caching duration
+
+7. NETWORK TOPOLOGIES
+- Bus: single cable, single point of failure
+- Ring: each node connected to two neighbors, token passing
+- Star: central switch/hub, most common LAN topology
+- Mesh: full (every node connected to all) or partial
+- Hybrid: combination (most enterprise networks)
+
+8. WIRELESS NETWORKING
+- WiFi standards: 802.11a/b/g/n/ac/ax (WiFi 6)
+- CSMA/CA: collision avoidance for wireless
+- OFDM: orthogonal frequency division multiplexing for high bandwidth
+
+9. SECURITY
+- Firewall: packet filtering, stateful inspection, application proxy
+- VPN: encrypted tunnel, IPSec or TLS-based
+- DDoS attacks: volumetric, protocol, application layer
+- ARP spoofing: man-in-the-middle using fake ARP replies
+- SSL/TLS: certificate authority chain of trust
+
+10. NETWORK DEVICES
+- Hub: Layer 1, broadcasts to all ports
+- Switch: Layer 2, MAC table forwarding
+- Router: Layer 3, IP routing between networks
+- Firewall: security filtering at multiple layers
+- Load Balancer: distributes traffic across servers

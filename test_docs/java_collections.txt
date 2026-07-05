@@ -1,0 +1,75 @@
+JAVA COLLECTIONS FRAMEWORK - COMPREHENSIVE GUIDE
+
+1. INTRODUCTION TO JAVA COLLECTIONS
+Java Collections Framework (JCF) provides a unified architecture for storing and manipulating groups of objects. It includes interfaces, implementations, and algorithms.
+
+2. ARRAYLIST vs LINKEDLIST
+
+ArrayList:
+- Backed by a dynamic array (Object[])
+- Random access O(1) via index
+- Add/remove at end: amortized O(1)
+- Add/remove at middle: O(n) due to shifting
+- Memory layout: contiguous, cache-friendly
+- Better for: read-heavy operations, indexed access
+
+LinkedList:
+- Doubly-linked list implementation
+- Random access O(n) — must traverse from head
+- Add/remove at head/tail: O(1)
+- Add/remove at middle: O(n) traversal + O(1) pointer update
+- Memory layout: scattered nodes with prev/next pointers
+- Better for: frequent insertions/deletions at ends, queue operations
+- Implements both List and Deque interfaces
+
+Key Difference Summary:
+| Operation         | ArrayList | LinkedList |
+|-------------------|-----------|------------|
+| get(index)        | O(1)      | O(n)       |
+| add(end)          | O(1) amort| O(1)       |
+| add(middle)       | O(n)      | O(n)       |
+| remove(middle)    | O(n)      | O(n)       |
+| Memory overhead   | Low       | High       |
+
+3. HASHMAP
+- Key-value pairs stored in hash table
+- Average O(1) get/put operations
+- Uses hashCode() and equals() for key lookup
+- Load factor default: 0.75
+- Resizes when entries exceed capacity * load factor
+
+4. HASHSET
+- Internally backed by HashMap
+- No duplicate elements
+- O(1) add, remove, contains average case
+
+5. TREEMAP and TREESET
+- Based on Red-Black Tree
+- O(log n) for all operations
+- Keys stored in natural/comparator order
+
+6. ITERATOR PATTERN
+- Iterator: remove while traversing (safe iteration)
+- ListIterator: bidirectional iteration for List
+- Enhanced for-loop uses Iterable internally
+
+7. COLLECTIONS UTILITY CLASS
+- Collections.sort() — merge sort, O(n log n)
+- Collections.binarySearch() — requires sorted list
+- Collections.unmodifiableList() — read-only wrapper
+- Collections.synchronizedList() — thread-safe wrapper
+
+8. CONCURRENT COLLECTIONS
+- ConcurrentHashMap: segment-locked, thread-safe
+- CopyOnWriteArrayList: snapshot semantics, read-heavy workloads
+- BlockingQueue: producer-consumer pattern
+
+9. STACK vs DEQUE
+- Stack class is legacy (extends Vector), avoid it
+- Use ArrayDeque as a stack: push(), pop(), peek()
+- ArrayDeque is faster than Stack and LinkedList for stack use
+
+10. GENERICS IN COLLECTIONS
+- Type safety at compile time
+- Wildcards: ? extends T (covariant), ? super T (contravariant)
+- Raw types cause unchecked warnings and ClassCastException risks

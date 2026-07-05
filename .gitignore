@@ -1,0 +1,39 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Production/Build outputs
+dist/
+**/dist/
+build/
+**/build/
+server_out.txt
+
+# Environment variables and secrets
+.env
+.env.*
+**/ .env
+**/.env
+**/.env.*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+coverage/
+**/coverage/
+
+# Logs
+*.log
+**/logs
+**/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
