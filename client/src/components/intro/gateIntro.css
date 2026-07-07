@@ -17,7 +17,7 @@
 }
 
 .ch-scene-root {
-    background: var(--ch-ink);
+    background: transparent;
     color: var(--ch-cream);
     font-family: 'Inter', sans-serif;
     height: 100vh;
@@ -128,23 +128,31 @@
     max-height: 64vh;
     border-radius: 50% 50% 4px 4px / 34% 34% 0 0;
     overflow: hidden;
-    box-shadow: 0 0 0 10px var(--ch-ink-2), 0 40px 100px -20px rgba(0, 0, 0, .8),
+    box-shadow: 0 0 0 10px var(--ch-ink-2),
+        0 0 45px rgba(37, 99, 235, 0.45),
+        /* Vibrant Neon Blue Inner Glow */
+        0 0 85px rgba(201, 162, 75, 0.25),
+        /* Soft ambient gold aura */
+        0 40px 100px -20px rgba(0, 0, 0, .8),
         inset 0 0 60px rgba(0, 0, 0, .6);
-    border: 2px solid rgba(201, 162, 75, .35);
+    border: 2.5px solid rgba(201, 162, 75, .65);
+    /* Vibrant gold border */
     perspective: 1600px;
 }
 
 .ch-gate-glow {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 55%, #fff6da 0%, var(--ch-gold-bright) 22%, transparent 70%);
+    background: radial-gradient(circle at 50% 55%, #ffffff 0%, var(--ch-gold-bright) 30%, rgba(124, 35, 51, 0.45) 60%, transparent 85%);
     opacity: 0;
-    transition: opacity 1.4s ease 0.2s;
+    transition: opacity 1.4s ease 0.2s, transform 1.4s ease 0.2s;
+    transform: scale(0.9);
     z-index: 1;
 }
 
 .ch-gate-frame.ch-open .ch-gate-glow {
-    opacity: 0.9;
+    opacity: 0.95;
+    transform: scale(1.05);
 }
 
 .ch-door {
@@ -167,7 +175,22 @@
     bottom: 8%;
     width: 3px;
     background: linear-gradient(var(--ch-gold-bright), var(--ch-gold));
-    box-shadow: 0 0 12px var(--ch-gold-bright);
+    box-shadow: 0 0 12px var(--ch-gold-bright), 0 0 24px rgba(238, 205, 133, 0.65);
+    animation: ch-door-glow-pulse 2s infinite ease-in-out;
+}
+
+@keyframes ch-door-glow-pulse {
+
+    0%,
+    100% {
+        opacity: 0.75;
+        box-shadow: 0 0 10px var(--ch-gold-bright);
+    }
+
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 24px var(--ch-gold-bright), 0 0 35px rgba(238, 205, 133, 0.85);
+    }
 }
 
 .ch-door::before {
@@ -178,7 +201,8 @@
     height: 22px;
     border-radius: 50%;
     border: 3px solid var(--ch-gold-bright);
-    box-shadow: 0 0 10px rgba(238, 205, 133, .7);
+    box-shadow: 0 0 12px rgba(238, 205, 133, .8), 0 0 24px rgba(238, 205, 133, .4);
+    background: radial-gradient(circle, var(--ch-gold) 0%, transparent 80%);
 }
 
 .ch-door-left {
@@ -498,7 +522,8 @@
     height: 10px;
     border-radius: 50%;
     transform: translate(-50%, -50%) scale(0);
-    background: radial-gradient(circle, #ffffff 0%, var(--ch-gold-bright) 35%, transparent 72%);
+    background: radial-gradient(circle, #ffffff 0%, var(--ch-gold-bright) 28%, rgba(124, 35, 51, 0.75) 55%, transparent 80%);
+    box-shadow: 0 0 50px var(--ch-gold-bright), 0 0 100px rgba(124, 35, 51, 0.4);
     z-index: 9;
     opacity: 0;
     pointer-events: none;

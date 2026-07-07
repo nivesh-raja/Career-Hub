@@ -1,28 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-bg: #F8FAFC;
-    --color-card: #FFFFFF;
-    --color-sidebar: #FFFFFF;
-    --color-border: #E2E8F0;
-    --color-text-primary: #0F172A;
-    --color-text-secondary: #64748B;
+    --color-bg: #f9f6ef;
+    --color-card: #faf7f0;
+    --color-sidebar: #f4efe3;
+    --color-border: #e9d9b2;
+    --color-text-primary: #2a2013;
+    --color-text-secondary: #6b5a3a;
   }
 
   .dark {
-    --color-bg: #0B0F1A;
-    --color-card: #111827;
-    --color-sidebar: #0F1629;
-    --color-border: #1E293B;
-    --color-text-primary: #F1F5F9;
-    --color-text-secondary: #94A3B8;
+    --color-bg: #0b1020;
+    --color-card: #0f1526;
+    --color-sidebar: #0a0e1c;
+    --color-border: #232d4d;
+    --color-text-primary: #f4efe3;
+    --color-text-secondary: #a7aed0;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
   }
 
   body {
@@ -115,8 +126,98 @@
 }
 
 /* Override transition for elements that shouldn't animate */
-input, textarea, select, button, a, [role="button"] {
+input,
+textarea,
+select,
+button,
+a,
+[role="button"] {
   transition-property: background-color, border-color, color, box-shadow, opacity, transform;
-  transition-duration: 0.15s;
-  transition-timing-function: ease;
+  transition-duration: 0.20s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Premium Motion Primitives & Vibration (Ledger Theme) --- */
+
+/* Interactive Card Tilt & Shift */
+.ch-card-vibrant {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.ch-card-vibrant:hover {
+  transform: translateY(-5px) rotate(0.4deg) !important;
+  box-shadow: 0 16px 32px -8px rgba(122, 90, 45, 0.12),
+    0 4px 12px -2px rgba(122, 90, 45, 0.05),
+    0 0 0 1px rgba(201, 162, 75, 0.25) !important;
+  border-color: rgba(201, 162, 75, 0.45) !important;
+}
+
+.dark .ch-card-vibrant:hover {
+  box-shadow: 0 16px 36px -12px rgba(4, 6, 16, 0.65),
+    0 0 0 1px rgba(238, 205, 133, 0.15) !important;
+  border-color: rgba(238, 205, 133, 0.25) !important;
+}
+
+/* Wax Seal Button Press Confirmation Animation */
+.ch-wax-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.ch-wax-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(238, 205, 133, 0.2) 0%, transparent 60%);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+  pointer-events: none;
+}
+
+.ch-wax-btn:active::after {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Pulsing Ambient Brand Glow */
+.ch-pulse-gold {
+  animation: ch-pulse-gold-anim 2.5s infinite ease-in-out;
+}
+
+@keyframes ch-pulse-gold-anim {
+
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(201, 162, 75, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 16px rgba(201, 162, 75, 0.35);
+  }
+}
+
+/* Page Turn Route Transition Class */
+.ch-page-turn {
+  animation: ch-page-turn-anim 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes ch-page-turn-anim {
+  0% {
+    opacity: 0;
+    transform: rotateY(-3deg) translateX(-15px);
+    transform-origin: left center;
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) translateX(0);
+    transform-origin: left center;
+  }
 }

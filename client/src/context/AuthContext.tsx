@@ -130,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Logout error on server, clearing client state anyway.');
     } finally {
       localStorage.removeItem('token');
+      sessionStorage.removeItem('ch-intro-seen');
       setUser(null);
       setIsAuthenticated(false);
       setIsLoading(false);

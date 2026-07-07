@@ -4,7 +4,6 @@ import { useTheme } from '../../context/ThemeProvider.js';
 import { Bell, Search, Menu, Sun, Moon, Sparkles, Settings, LogOut, User } from 'lucide-react';
 import { Badge } from '../ui/Badge.js';
 import { Avatar } from '../ui/Avatar.js';
-import { cn } from '../../utils/cn.js';
 import { useNavigate } from 'react-router-dom';
 
 interface TopbarProps {

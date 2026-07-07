@@ -7,26 +7,16 @@ import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
-import { 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  Users, 
-  FileSpreadsheet, 
-  FileText,
-  UploadCloud,
+import {
+  BookOpen,
+  Clock,
+  Users,
   Megaphone,
   Edit2,
   Trash2,
-  Lock,
   Search,
-  Check,
-  Shield,
-  Eye,
   X,
-  Sparkles,
   ChevronRight,
-  TrendingUp,
   Download
 } from 'lucide-react';
 
@@ -151,6 +141,10 @@ interface Announcement {
     _id: string;
     className: string;
   };
+  faculty?: {
+    _id: string;
+    name: string;
+  };
   publishDate: string;
 }
 
@@ -183,7 +177,7 @@ interface Toast {
 
 export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview' }) => {
   const { user } = useAuth();
-  
+
   // Toast notifications state
   const [toasts, setToasts] = useState<Toast[]>([]);
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -261,7 +255,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
   });
 
   // Queries
-  const { data: classroomsData, isLoading: isClassroomsLoading, refetch: refetchClassrooms } = useQuery<{ success: boolean; classrooms: Classroom[] }>({
+  const { data: classroomsData } = useQuery<{ success: boolean; classrooms: Classroom[] }>({
     queryKey: ['facultyClassrooms'],
     queryFn: async () => (await api.get('/classrooms')).data,
   });
@@ -495,9 +489,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`p-4 rounded-lg shadow-dropdown border text-xs font-semibold flex items-center justify-between gap-3 pointer-events-auto transform animate-slideIn ${
-              t.type === 'success' ? 'bg-success-light border-success/20 text-success-text' : 'bg-danger-light border-danger/20 text-danger-text'
-            }`}
+            className={`p-4 rounded-lg shadow-dropdown border text-xs font-semibold flex items-center justify-between gap-3 pointer-events-auto transform animate-slideIn ${t.type === 'success' ? 'bg-success-light border-success/20 text-success-text' : 'bg-danger-light border-danger/20 text-danger-text'
+              }`}
           >
             <span>{t.message}</span>
             <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))} className="text-text-secondary hover:text-text-primary">
@@ -689,9 +682,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               <button
                 key={tab.id}
                 onClick={() => setClassroomTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-colors ${
-                  classroomTab === tab.id ? 'bg-white text-text-primary shadow-subtle' : 'text-text-secondary hover:bg-slate-200'
-                }`}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-colors ${classroomTab === tab.id ? 'bg-white text-text-primary shadow-subtle' : 'text-text-secondary hover:bg-slate-200'
+                  }`}
               >
                 {tab.label}
               </button>
@@ -782,7 +774,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60">
-                      {selectedClassroom.students.map((st, idx) => (
+                      {selectedClassroom.students.map((st) => (
                         <tr key={st._id} className="hover:bg-slate-50/20">
                           <td className="py-2.5 px-4 font-semibold text-text-primary">
                             REG-{st._id.substring(st._id.length - 6).toUpperCase()}
@@ -1635,7 +1627,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                       rel="noopener noreferrer"
                       className="text-primary hover:underline flex items-center gap-1 font-semibold"
                     >
-                      <Download className="h-3 w-3" /> Download Solution File {i+1}
+                      <Download className="h-3 w-3" /> Download Solution File {i + 1}
                     </a>
                   ))}
                   <span className="text-[10px] text-text-secondary block pt-1">
@@ -1876,7 +1868,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   {!selectedClassroomId && (
                     <Select
                       label="Classroom target"
-                      options={[{ value: '', label: 'Global broadcast' }, ...facultyClassrooms.map(c => ({ value: c._id, label: c.className }))] }
+                      options={[{ value: '', label: 'Global broadcast' }, ...facultyClassrooms.map(c => ({ value: c._id, label: c.className }))]}
                       value={announcementForm.targetClassroom}
                       onChange={(e) => setAnnouncementForm({ ...announcementForm, targetClassroom: e.target.value })}
                     />

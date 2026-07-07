@@ -6,13 +6,13 @@ import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
-import { 
-  Users, 
-  GraduationCap, 
-  Network, 
-  BookOpen, 
-  Clock, 
-  Megaphone, 
+import {
+  Users,
+  GraduationCap,
+  Network,
+  BookOpen,
+  Clock,
+  Megaphone,
   Edit2,
   Trash2,
   Lock,
@@ -439,8 +439,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
   // ==========================================
 
   const filteredUsers = usersData?.users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) || 
-                          u.email.toLowerCase().includes(userSearch.toLowerCase());
+    const matchesSearch = u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+      u.email.toLowerCase().includes(userSearch.toLowerCase());
     const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
     const matchesDept = userDeptFilter === 'all' || u.department?._id === userDeptFilter;
     const matchesClass = userClassFilter === 'all' || u.classroom?._id === userClassFilter;
@@ -454,11 +454,10 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`p-4 rounded-lg shadow-dropdown border text-xs font-semibold flex items-center justify-between gap-3 pointer-events-auto transform animate-slideIn ${
-              t.type === 'success' 
-                ? 'bg-success-light border-success/20 text-success-text'
-                : 'bg-danger-light border-danger/20 text-danger-text'
-            }`}
+            className={`p-4 rounded-lg shadow-dropdown border text-xs font-semibold flex items-center justify-between gap-3 pointer-events-auto transform animate-slideIn ${t.type === 'success'
+              ? 'bg-success-light border-success/20 text-success-text'
+              : 'bg-danger-light border-danger/20 text-danger-text'
+              }`}
           >
             <span>{t.message}</span>
             <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))} className="text-text-secondary hover:text-text-primary">
@@ -563,25 +562,25 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             </Card>
 
             {/* Board Notices Panel */}
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Megaphone className="h-4.5 w-4.5 text-text-secondary" />
+                  <Megaphone className="h-4.5 w-4.5 text-text-secondary dark:text-slate-400" />
                   <CardTitle>Global Board Notices</CardTitle>
                 </div>
                 <CardDescription>Official ERP notifications.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {dashData.announcements.map((ann) => (
-                  <div key={ann.id} className="p-4 bg-slate-50 border border-border rounded-lg space-y-1.5">
+                  <div key={ann.id} className="p-4 bg-slate-50 dark:bg-dark-surface/40 border border-border dark:border-dark-border rounded-lg space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-xs font-bold text-text-primary truncate">{ann.title}</h4>
+                      <h4 className="text-xs font-bold text-text-primary dark:text-gray-200 truncate">{ann.title}</h4>
                       <Badge variant={ann.priority === 'high' ? 'danger' : 'secondary'} className="text-[8px] py-0 px-1 select-none">
                         {ann.priority}
                       </Badge>
                     </div>
-                    <p className="text-xs text-text-secondary leading-relaxed">{ann.content}</p>
-                    <span className="text-[9px] text-text-secondary font-semibold block pt-1">Date: {ann.date}</span>
+                    <p className="text-xs text-text-secondary dark:text-slate-400 leading-relaxed">{ann.content}</p>
+                    <span className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold block pt-1">Date: {ann.date}</span>
                   </div>
                 ))}
               </CardContent>
@@ -594,8 +593,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           2. USER DIRECTORY VIEW
           ========================================== */}
       {activeTab === 'users' && usersData && (
-        <Card className="bg-white border border-border">
-          <CardHeader className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>User Directory</CardTitle>
               <CardDescription>View, audit, edit profiles, reset credentials, or deactivate account states.</CardDescription>
@@ -603,20 +602,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             {/* Search and Filters Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center gap-2">
               <div className="relative col-span-1 sm:col-span-2 md:w-48">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary" />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search user..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary"
+                  className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-150 rounded-md focus:outline-none focus:bg-white dark:focus:bg-dark-card focus:border-primary"
                 />
               </div>
-              
+
               <select
                 value={userRoleFilter}
                 onChange={(e) => setUserRoleFilter(e.target.value)}
-                className="text-xs bg-slate-50 border border-border rounded-md px-2 py-2 focus:outline-none cursor-pointer"
+                className="text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-250 rounded-md px-2 py-2 focus:outline-none cursor-pointer"
               >
                 <option value="all">All Roles</option>
                 <option value="student">Students</option>
@@ -627,7 +626,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
               <select
                 value={userDeptFilter}
                 onChange={(e) => setUserDeptFilter(e.target.value)}
-                className="text-xs bg-slate-50 border border-border rounded-md px-2 py-2 focus:outline-none cursor-pointer max-w-[140px]"
+                className="text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-250 rounded-md px-2 py-2 focus:outline-none cursor-pointer max-w-[140px]"
               >
                 <option value="all">All Departments</option>
                 {deptsData?.departments.map(d => (
@@ -638,7 +637,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
               <select
                 value={userClassFilter}
                 onChange={(e) => setUserClassFilter(e.target.value)}
-                className="text-xs bg-slate-50 border border-border rounded-md px-2 py-2 focus:outline-none cursor-pointer max-w-[140px]"
+                className="text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-250 rounded-md px-2 py-2 focus:outline-none cursor-pointer max-w-[140px]"
               >
                 <option value="all">All Classrooms</option>
                 {classroomsData?.classrooms.map(c => (
@@ -651,7 +650,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3.5 px-4">Profile</th>
                     <th className="py-3.5 px-4">Name</th>
                     <th className="py-3.5 px-4">Email</th>
@@ -662,18 +661,18 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {filteredUsers.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-50/50">
+                    <tr key={u._id} className="hover:bg-slate-50/50 dark:hover:bg-dark-hover/30">
                       <td className="py-3 px-4">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 border border-border flex items-center justify-center font-bold text-text-primary text-xs shrink-0 select-none">
+                        <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-dark-surface border border-border dark:border-dark-border flex items-center justify-center font-bold text-text-primary dark:text-gray-200 text-xs shrink-0 select-none">
                           {u.name.charAt(0)}
                         </div>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-text-primary">{u.name}</td>
-                      <td className="py-3 px-4 text-text-secondary">{u.email}</td>
-                      <td className="py-3 px-4 text-text-secondary">{u.department?.code || 'Admin Office'}</td>
-                      <td className="py-3 px-4 text-text-secondary">
+                      <td className="py-3 px-4 font-semibold text-text-primary dark:text-gray-200">{u.name}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{u.email}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{u.department?.code || 'Admin Office'}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">
                         {u.classroom ? `${u.classroom.className}` : 'Unassigned'}
                       </td>
                       <td className="py-3 px-4">
@@ -682,13 +681,12 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        <span 
+                        <span
                           onClick={() => handleToggleUserStatus(u)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold cursor-pointer select-none border transition-colors ${
-                            u.status === 'Active' 
-                              ? 'bg-success-light border-success/15 text-success-text' 
-                              : 'bg-danger-light border-danger/15 text-danger-text'
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold cursor-pointer select-none border transition-colors ${u.status === 'Active'
+                            ? 'bg-success-light border-success/15 text-success-text'
+                            : 'bg-danger-light border-danger/15 text-danger-text'
+                            }`}
                         >
                           {u.status === 'Active' ? 'Active' : 'Inactive'}
                         </span>
@@ -696,28 +694,28 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                       <td className="py-3 px-4 text-right space-x-1">
                         <button
                           onClick={() => setViewingUser(u)}
-                          className="p-1.5 hover:bg-slate-100 border border-border rounded text-text-secondary hover:text-text-primary"
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-dark-hover border border-border dark:border-dark-border rounded text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500"
                           title="View Details"
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setEditingUser(u)}
-                          className="p-1.5 hover:bg-slate-100 border border-border rounded text-text-secondary hover:text-text-primary"
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-dark-hover border border-border dark:border-dark-border rounded text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500"
                           title="Edit Profile"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setResettingUser(u)}
-                          className="p-1.5 hover:bg-slate-100 border border-border rounded text-text-secondary hover:text-text-primary"
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-dark-hover border border-border dark:border-dark-border rounded text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500"
                           title="Reset Password"
                         >
                           <Lock className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteUser(u._id, u.name)}
-                          className="p-1.5 hover:bg-danger-light border border-border hover:border-danger/15 rounded text-text-secondary hover:text-danger-text"
+                          className="p-1.5 hover:bg-danger-light dark:hover:bg-red-950/20 border border-border dark:border-dark-border hover:border-danger/15 rounded text-text-secondary dark:text-slate-400 hover:text-danger-text"
                           title="Delete User"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -743,20 +741,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           3. ROLE MANAGEMENT VIEW
           ========================================== */}
       {activeTab === 'roles' && usersData && (
-        <Card className="bg-white border border-border">
-          <CardHeader className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>Role Permissions Directory</CardTitle>
               <CardDescription>Direct role configuration list. Changes immediately update permissions without pages refreshes.</CardDescription>
             </div>
             <div className="relative max-w-xs w-full">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary dark:text-slate-400" />
               <input
                 type="text"
                 placeholder="Search name or email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
-                className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary"
+                className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-150 rounded-md focus:outline-none focus:bg-white dark:focus:bg-dark-card focus:border-primary"
               />
             </div>
           </CardHeader>
@@ -764,7 +762,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3.5 px-4">Name</th>
                     <th className="py-3.5 px-4">Email</th>
                     <th className="py-3.5 px-4">Department</th>
@@ -773,7 +771,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {usersData.users
                     .filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase()))
                     .map((u) => {
@@ -781,15 +779,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                       const hasChanged = bufferValue !== u.role;
 
                       return (
-                        <tr key={u._id} className="hover:bg-slate-50/50">
-                          <td className="py-3.5 px-4 font-semibold text-text-primary">{u.name}</td>
-                          <td className="py-3.5 px-4 text-text-secondary">{u.email}</td>
-                          <td className="py-3.5 px-4 text-text-secondary">{u.department?.code || 'Admin Office'}</td>
+                        <tr key={u._id} className="hover:bg-slate-50/50 dark:hover:bg-dark-hover/30">
+                          <td className="py-3.5 px-4 font-semibold text-text-primary dark:text-gray-200">{u.name}</td>
+                          <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400">{u.email}</td>
+                          <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400">{u.department?.code || 'Admin Office'}</td>
                           <td className="py-3.5 px-4">
                             <select
                               value={bufferValue}
                               onChange={(e) => setRolesBuffer(prev => ({ ...prev, [u._id]: e.target.value }))}
-                              className="text-xs bg-slate-50 border border-border rounded px-2.5 py-1.5 focus:outline-none cursor-pointer font-medium text-text-primary focus:bg-white focus:border-primary"
+                              className="text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border rounded px-2.5 py-1.5 focus:outline-none cursor-pointer font-medium text-text-primary dark:text-gray-200 focus:bg-white dark:focus:bg-dark-card focus:border-primary"
                             >
                               <option value="student">Student</option>
                               <option value="faculty">Faculty</option>
@@ -803,15 +801,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             {hasChanged ? (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 onClick={() => handleInlineRoleSave(u._id)}
                                 className="h-7 text-[10px] px-3 flex items-center gap-1.5"
                               >
                                 <Check className="h-3 w-3" /> Save Role
                               </Button>
                             ) : (
-                              <span className="text-[10px] text-text-secondary italic font-medium pr-3 select-none">No changes</span>
+                              <span className="text-[10px] text-text-secondary dark:text-slate-450 italic font-medium pr-3 select-none">No changes</span>
                             )}
                           </td>
                         </tr>
@@ -828,8 +826,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           4. CLASSROOM MANAGEMENT VIEW
           ========================================== */}
       {activeTab === 'classrooms' && classroomsData && (
-        <Card className="bg-white border border-border">
-          <CardHeader className="border-b border-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Classroom sections</CardTitle>
               <CardDescription>Define schedules, capacity limits, faculty advisors, and subject curriculum.</CardDescription>
@@ -841,26 +839,26 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {classroomsData.classrooms.map((cls) => (
-                <div key={cls._id} className="p-5 border border-border rounded-lg bg-slate-50/10 flex flex-col justify-between hover:shadow-subtle transition-all duration-150">
+                <div key={cls._id} className="p-5 border border-border dark:border-dark-border rounded-lg bg-slate-50/10 dark:bg-dark-surface/40 flex flex-col justify-between hover:shadow-subtle transition-all duration-150">
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h4 className="text-sm font-bold text-text-primary">{cls.className}</h4>
-                        <span className="text-[10px] text-text-secondary font-medium block mt-0.5">
+                        <h4 className="text-sm font-bold text-text-primary dark:text-gray-200">{cls.className}</h4>
+                        <span className="text-[10px] text-text-secondary dark:text-slate-400 font-medium block mt-0.5">
                           {cls.department?.name} • Year {cls.academicYear} • Sec {cls.section}
                         </span>
                       </div>
                       <div className="flex gap-1.5">
-                        <button 
+                        <button
                           onClick={() => setEditingClassroom(cls)}
-                          className="p-1 text-text-secondary hover:text-text-primary hover:bg-slate-100 rounded border border-border"
+                          className="p-1 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-dark-hover rounded border border-border dark:border-dark-border"
                           title="Edit assignments"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteClassroom(cls._id, cls.className)}
-                          className="p-1 text-text-secondary hover:text-danger-text hover:bg-danger-light rounded border border-border"
+                          className="p-1 text-text-secondary dark:text-slate-400 hover:text-danger-text hover:bg-danger-light dark:hover:bg-red-950/20 rounded border border-border dark:border-dark-border"
                           title="Delete classroom"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -869,29 +867,29 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     </div>
 
                     <div className="space-y-2.5 text-xs">
-                      <div className="flex justify-between items-center py-1 border-b border-border/40">
-                        <span className="font-semibold text-text-secondary">Assigned Faculty Advisor</span>
-                        <span className="font-medium text-text-primary bg-white border border-border px-2 py-0.5 rounded text-[10px]">
+                      <div className="flex justify-between items-center py-1 border-b border-border/40 dark:border-dark-border/40">
+                        <span className="font-semibold text-text-secondary dark:text-slate-400">Assigned Faculty Advisor</span>
+                        <span className="font-medium text-text-primary dark:text-gray-150 bg-white dark:bg-dark-surface border border-border dark:border-dark-border px-2 py-0.5 rounded text-[10px]">
                           {cls.faculty?.name || 'Unassigned'}
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-border/40">
-                        <span className="font-semibold text-text-secondary">Students / Capacity</span>
-                        <span className="font-bold text-primary bg-primary-light px-2 py-0.5 border border-primary/5 rounded text-[10px]">
+                      <div className="flex justify-between items-center py-1 border-b border-border/40 dark:border-dark-border/40">
+                        <span className="font-semibold text-text-secondary dark:text-slate-400">Students / Capacity</span>
+                        <span className="font-bold text-primary bg-primary-light dark:bg-primary/20 px-2 py-0.5 border border-primary/5 dark:border-primary/30 rounded text-[10px]">
                           {cls.students.length} / {cls.capacity} Enrolled
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-border/40">
-                        <span className="font-semibold text-text-secondary">Class Status</span>
+                      <div className="flex justify-between items-center py-1 border-b border-border/40 dark:border-dark-border/40">
+                        <span className="font-semibold text-text-secondary dark:text-slate-400">Class Status</span>
                         <Badge variant={cls.status === 'Active' ? 'success' : 'secondary'} className="text-[8px] py-0 px-2 select-none">
                           {cls.status}
                         </Badge>
                       </div>
 
                       <div>
-                        <span className="font-semibold text-text-secondary block mb-1">Registered Syllabus Subjects</span>
+                        <span className="font-semibold text-text-secondary dark:text-slate-400 block mb-1">Registered Syllabus Subjects</span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {cls.subjects.map((sub) => (
                             <Badge key={sub._id} variant="secondary" className="text-[9px] px-2 py-0 select-none">
@@ -899,7 +897,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                             </Badge>
                           ))}
                           {cls.subjects.length === 0 && (
-                            <span className="text-[10px] text-text-secondary italic">No course subjects mapped.</span>
+                            <span className="text-[10px] text-text-secondary dark:text-slate-450 italic">No course subjects mapped.</span>
                           )}
                         </div>
                       </div>
@@ -908,7 +906,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                 </div>
               ))}
               {classroomsData.classrooms.length === 0 && (
-                <div className="col-span-2 py-12 text-center text-text-secondary border border-dashed border-border rounded-lg italic">
+                <div className="col-span-2 py-12 text-center text-text-secondary dark:text-slate-450 border border-dashed border-border dark:border-dark-border rounded-lg italic">
                   No classroom sections registered in the database.
                 </div>
               )}
@@ -921,8 +919,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           5. DEPARTMENTS DIRECTORY VIEW
           ========================================== */}
       {activeTab === 'departments' && deptsData && (
-        <Card className="bg-white border border-border">
-          <CardHeader className="border-b border-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Departments Directory</CardTitle>
               <CardDescription>Overview of university departments and academic code registers.</CardDescription>
@@ -935,23 +933,23 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Code</th>
                     <th className="py-3 px-4">Department Name</th>
                     <th className="py-3 px-4">Description</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {deptsData.departments.map((d) => (
-                    <tr key={d._id} className="hover:bg-slate-50/50">
+                    <tr key={d._id} className="hover:bg-slate-50/50 dark:hover:bg-dark-hover/30 border-b border-border/40 dark:border-dark-border/40">
                       <td className="py-3.5 px-4">
                         <Badge variant="primary" className="text-[10px] font-bold select-none">{d.code}</Badge>
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-text-primary">{d.name}</td>
-                      <td className="py-3.5 px-4 text-text-secondary truncate max-w-xs">{d.description || 'N/A'}</td>
+                      <td className="py-3.5 px-4 font-bold text-text-primary dark:text-gray-200">{d.name}</td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400 truncate max-w-xs">{d.description || 'N/A'}</td>
                       <td className="py-3.5 px-4 text-right">
-                        <span className="text-[10px] text-text-secondary font-semibold italic select-none pr-3">System Protected</span>
+                        <span className="text-[10px] text-text-secondary dark:text-slate-400 font-semibold italic select-none pr-3">System Protected</span>
                       </td>
                     </tr>
                   ))}
@@ -966,8 +964,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           6. SUBJECTS DIRECTORY VIEW
           ========================================== */}
       {activeTab === 'subjects' && subjectsData && (
-        <Card className="bg-white border border-border">
-          <CardHeader className="border-b border-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Course Subjects</CardTitle>
               <CardDescription>Curriculum syllabus subjects ledger and credit scoring parameters.</CardDescription>
@@ -980,7 +978,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Code</th>
                     <th className="py-3 px-4">Subject Name</th>
                     <th className="py-3 px-4">Credits</th>
@@ -988,15 +986,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {subjectsData.subjects.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-slate-50/50">
-                      <td className="py-3.5 px-4 font-bold text-text-primary">{sub.code}</td>
-                      <td className="py-3.5 px-4 font-semibold text-text-primary">{sub.name}</td>
-                      <td className="py-3.5 px-4 text-text-secondary font-bold">{sub.credits} Credits</td>
-                      <td className="py-3.5 px-4 text-text-secondary">{sub.department?.name || 'Elective / Core'}</td>
+                    <tr key={sub._id} className="hover:bg-slate-50/50 dark:hover:bg-dark-hover/30 border-b border-border/40 dark:border-dark-border/40">
+                      <td className="py-3.5 px-4 font-bold text-text-primary dark:text-gray-200">{sub.code}</td>
+                      <td className="py-3.5 px-4 font-semibold text-text-primary dark:text-gray-200">{sub.name}</td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400 font-bold">{sub.credits} Credits</td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400">{sub.department?.name || 'Elective / Core'}</td>
                       <td className="py-3.5 px-4 text-right">
-                        <span className="text-[10px] text-text-secondary font-semibold italic select-none pr-3">System Protected</span>
+                        <span className="text-[10px] text-text-secondary dark:text-slate-400 font-semibold italic select-none pr-3">System Protected</span>
                       </td>
                     </tr>
                   ))}
@@ -1014,44 +1012,44 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* A. VIEW USER DETAILS MODAL */}
       {viewingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setViewingUser(null)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setViewingUser(null)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader className="pb-3 border-b border-border">
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>User Account Details</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3.5 text-xs">
               <div className="flex gap-4 items-center mb-4">
-                <div className="h-12 w-12 rounded-full bg-primary-light border border-primary/10 flex items-center justify-center font-bold text-primary text-base">
+                <div className="h-12 w-12 rounded-full bg-primary-light dark:bg-dark-surface border border-primary/10 dark:border-dark-border flex items-center justify-center font-bold text-primary dark:text-gray-250 text-base">
                   {viewingUser.name.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-text-primary">{viewingUser.name}</h4>
+                  <h4 className="text-sm font-bold text-text-primary dark:text-gray-200">{viewingUser.name}</h4>
                   <Badge variant="primary" className="uppercase text-[9px] mt-1 select-none font-bold">{viewingUser.role}</Badge>
                 </div>
               </div>
-              <div className="grid grid-cols-3 py-1 border-b border-border/40">
-                <span className="font-semibold text-text-secondary">Email</span>
-                <span className="col-span-2 font-medium text-text-primary break-all">{viewingUser.email}</span>
+              <div className="grid grid-cols-3 py-1 border-b border-border/40 dark:border-dark-border/40">
+                <span className="font-semibold text-text-secondary dark:text-slate-400">Email</span>
+                <span className="col-span-2 font-medium text-text-primary dark:text-gray-200 break-all">{viewingUser.email}</span>
               </div>
-              <div className="grid grid-cols-3 py-1 border-b border-border/40">
-                <span className="font-semibold text-text-secondary">Phone</span>
-                <span className="col-span-2 font-medium text-text-primary">{viewingUser.phone || 'N/A'}</span>
+              <div className="grid grid-cols-3 py-1 border-b border-border/40 dark:border-dark-border/40">
+                <span className="font-semibold text-text-secondary dark:text-slate-400">Phone</span>
+                <span className="col-span-2 font-medium text-text-primary dark:text-gray-200">{viewingUser.phone || 'N/A'}</span>
               </div>
-              <div className="grid grid-cols-3 py-1 border-b border-border/40">
-                <span className="font-semibold text-text-secondary">Department</span>
-                <span className="col-span-2 font-medium text-text-primary">{viewingUser.department?.name || 'Platform Admin Office'}</span>
+              <div className="grid grid-cols-3 py-1 border-b border-border/40 dark:border-dark-border/40">
+                <span className="font-semibold text-text-secondary dark:text-slate-400">Department</span>
+                <span className="col-span-2 font-medium text-text-primary dark:text-gray-200">{viewingUser.department?.name || 'Platform Admin Office'}</span>
               </div>
-              <div className="grid grid-cols-3 py-1 border-b border-border/40">
-                <span className="font-semibold text-text-secondary">Classroom</span>
-                <span className="col-span-2 font-medium text-text-primary">
+              <div className="grid grid-cols-3 py-1 border-b border-border/40 dark:border-dark-border/40">
+                <span className="font-semibold text-text-secondary dark:text-slate-400">Classroom</span>
+                <span className="col-span-2 font-medium text-text-primary dark:text-gray-200">
                   {viewingUser.classroom ? viewingUser.classroom.className : 'Unassigned'}
                 </span>
               </div>
-              <div className="grid grid-cols-3 py-1 border-b border-border/40">
-                <span className="font-semibold text-text-secondary">Status</span>
-                <span className="col-span-2 font-bold text-text-primary">{viewingUser.status}</span>
+              <div className="grid grid-cols-3 py-1 border-b border-border/40 dark:border-dark-border/40">
+                <span className="font-semibold text-text-secondary dark:text-slate-400">Status</span>
+                <span className="col-span-2 font-bold text-text-primary dark:text-gray-200">{viewingUser.status}</span>
               </div>
               <div className="flex justify-end pt-4">
                 <Button size="sm" onClick={() => setViewingUser(null)}>Close View</Button>
@@ -1064,11 +1062,11 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* B. EDIT USER PROFILE DETAILS MODAL */}
       {editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setEditingUser(null)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setEditingUser(null)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader className="pb-3 border-b border-border">
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Edit User Profile</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -1096,7 +1094,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   value={editingUser.phone || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
                 />
-                
+
                 <Select
                   label="Department"
                   options={[
@@ -1104,9 +1102,9 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     ...(deptsData?.departments.map(d => ({ value: d._id, label: d.name })) || [])
                   ]}
                   value={editingUser.department?._id || ''}
-                  onChange={(e) => setEditingUser({ 
-                    ...editingUser, 
-                    department: e.target.value ? { _id: e.target.value, name: '', code: '' } : undefined 
+                  onChange={(e) => setEditingUser({
+                    ...editingUser,
+                    department: e.target.value ? { _id: e.target.value, name: '', code: '' } : undefined
                   })}
                 />
 
@@ -1117,9 +1115,9 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     ...(classroomsData?.classrooms.map(c => ({ value: c._id, label: `${c.className} (${c.semester})` })) || [])
                   ]}
                   value={editingUser.classroom?._id || ''}
-                  onChange={(e) => setEditingUser({ 
-                    ...editingUser, 
-                    classroom: e.target.value ? { _id: e.target.value, className: '', semester: '', section: '' } : undefined 
+                  onChange={(e) => setEditingUser({
+                    ...editingUser,
+                    classroom: e.target.value ? { _id: e.target.value, className: '', semester: '', section: '' } : undefined
                   })}
                 />
 
@@ -1133,7 +1131,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   onChange={(e) => setEditingUser({ ...editingUser, status: e.target.value as any })}
                 />
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setEditingUser(null)}>
                     Cancel
                   </Button>
@@ -1150,11 +1148,11 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* C. PASSWORD RESET MODAL */}
       {resettingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setResettingUser(null)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setResettingUser(null)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader className="pb-3 border-b border-border">
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Reset Password</CardTitle>
               <CardDescription>Change password for user "{resettingUser.name}".</CardDescription>
             </CardHeader>
@@ -1169,7 +1167,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   value={resetPasswordText}
                   onChange={(e) => setResetPasswordText(e.target.value)}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setResettingUser(null)}>
                     Cancel
                   </Button>
@@ -1186,11 +1184,11 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* D. EDIT CLASSROOM MODAL */}
       {editingClassroom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-lg bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative overflow-y-auto max-h-[90vh]">
-            <button onClick={() => setEditingClassroom(null)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-lg bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative overflow-y-auto max-h-[90vh]">
+            <button onClick={() => setEditingClassroom(null)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader className="pb-3 border-b border-border">
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Edit Classroom Section</CardTitle>
               <CardDescription>Assign advisor faculty, semesters, courses and pupil lists.</CardDescription>
             </CardHeader>
@@ -1248,8 +1246,8 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                     ...(usersData?.users.filter(u => u.role === 'faculty').map(f => ({ value: f._id, label: f.name })) || [])
                   ]}
                   value={editingClassroom.faculty?._id || ''}
-                  onChange={(e) => setEditingClassroom({ 
-                    ...editingClassroom, 
+                  onChange={(e) => setEditingClassroom({
+                    ...editingClassroom,
                     faculty: e.target.value ? { _id: e.target.value, name: '', email: '' } : undefined
                   })}
                 />
@@ -1266,20 +1264,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
 
                 {/* Subjects assignments */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Assign Subjects</label>
-                  <div className="border border-border rounded p-3 h-28 overflow-y-auto space-y-1.5 bg-slate-50/50">
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Assign Subjects</label>
+                  <div className="border border-border dark:border-dark-border rounded p-3 h-28 overflow-y-auto space-y-1.5 bg-slate-50/50 dark:bg-dark-surface/40">
                     {subjectsData?.subjects.map(sub => (
-                      <label key={sub._id} className="flex items-center gap-2 text-xs text-text-primary cursor-pointer">
+                      <label key={sub._id} className="flex items-center gap-2 text-xs text-text-primary dark:text-gray-200 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editingClassroom.subjects.some(s => s._id === sub._id)}
                           onChange={(e) => {
-                            const list = e.target.checked 
+                            const list = e.target.checked
                               ? [...editingClassroom.subjects, sub]
                               : editingClassroom.subjects.filter(s => s._id !== sub._id);
                             setEditingClassroom({ ...editingClassroom, subjects: list });
                           }}
-                          className="rounded border-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                          className="rounded border-border dark:border-dark-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
                         />
                         {sub.code}: {sub.name}
                       </label>
@@ -1289,20 +1287,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
 
                 {/* Enrolled Students assignments */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Enroll Students</label>
-                  <div className="border border-border rounded p-3 h-32 overflow-y-auto space-y-1.5 bg-slate-50/50">
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Enroll Students</label>
+                  <div className="border border-border dark:border-dark-border rounded p-3 h-32 overflow-y-auto space-y-1.5 bg-slate-50/50 dark:bg-dark-surface/40">
                     {usersData?.users.filter(u => u.role === 'student').map(stud => (
-                      <label key={stud._id} className="flex items-center gap-2 text-xs text-text-primary cursor-pointer">
+                      <label key={stud._id} className="flex items-center gap-2 text-xs text-text-primary dark:text-gray-200 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editingClassroom.students.some(s => s._id === stud._id)}
                           onChange={(e) => {
-                            const list = e.target.checked 
+                            const list = e.target.checked
                               ? [...editingClassroom.students, stud]
                               : editingClassroom.students.filter(s => s._id !== stud._id);
                             setEditingClassroom({ ...editingClassroom, students: list });
                           }}
-                          className="rounded border-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                          className="rounded border-border dark:border-dark-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
                         />
                         {stud.name} ({stud.email})
                       </label>
@@ -1310,7 +1308,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setEditingClassroom(null)}>
                     Cancel
                   </Button>
@@ -1327,15 +1325,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* E. CREATE USER MODAL */}
       {isCreateUserOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreateUserOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateUserOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader>
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Onboard New User</CardTitle>
               <CardDescription>Register a student, faculty member, or admin account.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <form onSubmit={handleCreateUserSubmit} className="space-y-4">
                 <Input
                   id="reg-user-name"
@@ -1391,7 +1389,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   value={newUser.phone}
                   onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateUserOpen(false)}>
                     Cancel
                   </Button>
@@ -1408,15 +1406,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* F. CREATE CLASSROOM MODAL */}
       {isCreateClassroomOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-lg bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative overflow-y-auto max-h-[90vh]">
-            <button onClick={() => setIsCreateClassroomOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-lg bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative overflow-y-auto max-h-[90vh]">
+            <button onClick={() => setIsCreateClassroomOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader>
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Create Classroom Section</CardTitle>
               <CardDescription>Define year sections, semesters, advisory staff, and enrolled students.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <form onSubmit={handleCreateClassroomSubmit} className="space-y-4">
                 <Input
                   id="create-class-ref"
@@ -1498,20 +1496,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
 
                 {/* Checklist of subjects */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Assign Subjects</label>
-                  <div className="border border-border rounded p-3 h-28 overflow-y-auto space-y-1.5 bg-slate-50/50">
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Assign Subjects</label>
+                  <div className="border border-border dark:border-dark-border rounded p-3 h-28 overflow-y-auto space-y-1.5 bg-slate-50/50 dark:bg-dark-surface/40">
                     {subjectsData?.subjects.map(sub => (
-                      <label key={sub._id} className="flex items-center gap-2 text-xs text-text-primary cursor-pointer">
+                      <label key={sub._id} className="flex items-center gap-2 text-xs text-text-primary dark:text-gray-250 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newClassroom.selectedSubjects.includes(sub._id)}
                           onChange={(e) => {
-                            const list = e.target.checked 
+                            const list = e.target.checked
                               ? [...newClassroom.selectedSubjects, sub._id]
                               : newClassroom.selectedSubjects.filter(id => id !== sub._id);
                             setNewClassroom({ ...newClassroom, selectedSubjects: list });
                           }}
-                          className="rounded border-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                          className="rounded border-border dark:border-dark-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
                         />
                         {sub.code}: {sub.name}
                       </label>
@@ -1521,20 +1519,20 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
 
                 {/* Checklist of students */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Enroll Students</label>
-                  <div className="border border-border rounded p-3 h-32 overflow-y-auto space-y-1.5 bg-slate-50/50">
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Enroll Students</label>
+                  <div className="border border-border dark:border-dark-border rounded p-3 h-32 overflow-y-auto space-y-1.5 bg-slate-50/50 dark:bg-dark-surface/40">
                     {usersData?.users.filter(u => u.role === 'student').map(stud => (
-                      <label key={stud._id} className="flex items-center gap-2 text-xs text-text-primary cursor-pointer">
+                      <label key={stud._id} className="flex items-center gap-2 text-xs text-text-primary dark:text-gray-250 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={newClassroom.selectedStudents.includes(stud._id)}
                           onChange={(e) => {
-                            const list = e.target.checked 
+                            const list = e.target.checked
                               ? [...newClassroom.selectedStudents, stud._id]
                               : newClassroom.selectedStudents.filter(id => id !== stud._id);
                             setNewClassroom({ ...newClassroom, selectedStudents: list });
                           }}
-                          className="rounded border-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                          className="rounded border-border dark:border-dark-border text-primary focus:ring-primary/40 focus:ring-offset-0 focus:outline-none cursor-pointer"
                         />
                         {stud.name} ({stud.email})
                       </label>
@@ -1542,7 +1540,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateClassroomOpen(false)}>
                     Cancel
                   </Button>
@@ -1559,15 +1557,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* G. CREATE DEPARTMENT MODAL */}
       {isCreateDeptOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreateDeptOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateDeptOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader>
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Create Department</CardTitle>
               <CardDescription>Add a new university department registry.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <form onSubmit={handleCreateDeptSubmit} className="space-y-4">
                 <Input
                   id="dept-name"
@@ -1588,16 +1586,16 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   onChange={(e) => setNewDept({ ...newDept, code: e.target.value })}
                 />
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-text-secondary uppercase select-none">Description</label>
+                  <label className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">Description</label>
                   <textarea
                     value={newDept.description}
                     onChange={(e) => setNewDept({ ...newDept, description: e.target.value })}
                     rows={3}
-                    className="w-full p-3 text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary"
+                    className="w-full p-3 text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary dark:bg-dark-surface dark:border-dark-border dark:text-gray-150 dark:focus:bg-dark-card"
                     placeholder="Enter department scope description..."
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateDeptOpen(false)}>
                     Cancel
                   </Button>
@@ -1614,15 +1612,15 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       {/* H. CREATE SUBJECT MODAL */}
       {isCreateSubjectOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreateSubjectOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateSubjectOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader>
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
               <CardTitle>Create Course Subject</CardTitle>
               <CardDescription>Setup subject and assign HOD department.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <form onSubmit={handleCreateSubjectSubmit} className="space-y-4">
                 <Input
                   id="sub-name"
@@ -1659,7 +1657,7 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   value={newSubject.department}
                   onChange={(e) => setNewSubject({ ...newSubject, department: e.target.value })}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateSubjectOpen(false)}>
                     Cancel
                   </Button>

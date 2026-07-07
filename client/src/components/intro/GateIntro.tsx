@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './gateIntro.css';
+import { VibrantBackground } from '../ui/VibrantBackground.js';
 
 interface GateIntroProps {
     children: React.ReactNode;
@@ -11,7 +12,7 @@ export const GateIntro: React.FC<GateIntroProps> = ({ children }) => {
     const [dots, setDots] = useState<{ id: number; left: number; delay: number; size: number; duration: number }[]>([]);
     const [sparks, setSparks] = useState<{ id: number; dx: number; dy: number; delay: number }[]>([]);
 
-    const skipped = localStorage.getItem('ch-intro-seen') === 'true';
+    const skipped = sessionStorage.getItem('ch-intro-seen') === 'true';
 
     useEffect(() => {
         // Generate ambient dust particles
@@ -62,7 +63,7 @@ export const GateIntro: React.FC<GateIntroProps> = ({ children }) => {
             }, 4150 * t),
             setTimeout(() => {
                 setStage('done');
-                localStorage.setItem('ch-intro-seen', 'true');
+                sessionStorage.setItem('ch-intro-seen', 'true');
                 // Try to focus email/login input (email is the ID of input in original LoginPage.tsx)
                 const emailInput = document.getElementById('email') || document.getElementById('loginId');
                 if (emailInput) {
@@ -76,7 +77,7 @@ export const GateIntro: React.FC<GateIntroProps> = ({ children }) => {
 
     const handleSkip = () => {
         setStage('done');
-        localStorage.setItem('ch-intro-seen', 'true');
+        sessionStorage.setItem('ch-intro-seen', 'true');
         setTimeout(() => {
             const emailInput = document.getElementById('email') || document.getElementById('loginId');
             if (emailInput) {
@@ -89,6 +90,7 @@ export const GateIntro: React.FC<GateIntroProps> = ({ children }) => {
 
     return (
         <div className="ch-scene-root" data-stage={stage}>
+            <VibrantBackground />
             {/* Ambient Dust */}
             <div className="ch-dust">
                 {dots.map((dot) => (

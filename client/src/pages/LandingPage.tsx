@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import {
   GraduationCap,
   ArrowRight,
-  CheckCircle2,
   Sparkles,
   Users,
   BookOpen,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/Button.js';
 import { Card, CardContent } from '../components/ui/Card.js';
+import { VibrantBackground } from '../components/ui/VibrantBackground.js';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -64,7 +64,8 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-dark-bg text-text-primary dark:text-secondary-200">
+    <div className="min-h-screen flex flex-col text-text-primary dark:text-secondary-200 relative">
+      <VibrantBackground />
       {/* Navbar */}
       <header className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-border dark:border-dark-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -217,7 +218,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* About */}
-      <section id="about" className="py-24 bg-white dark:bg-dark-bg border-t border-border dark:border-dark-border">
+      <section id="about" className="py-24 bg-transparent border-t border-border dark:border-dark-border relative z-10">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -281,7 +282,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer id="contact" className="bg-white dark:bg-dark-card border-t border-border dark:border-dark-border mt-auto py-12">
+      <footer id="contact" className="bg-white/40 dark:bg-dark-card/45 backdrop-blur-sm border-t border-border dark:border-dark-border mt-auto py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <div className="bg-gradient-to-br from-primary to-primary-600 text-white p-1.5 rounded-lg">

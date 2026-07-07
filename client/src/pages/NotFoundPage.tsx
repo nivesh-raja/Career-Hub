@@ -3,17 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { FileQuestion, ArrowLeft, Home } from 'lucide-react';
 import { Button } from '../components/ui/Button.js';
 import { motion } from 'framer-motion';
+import { VibrantBackground } from '../components/ui/VibrantBackground.js';
 
 export const NotFoundPage: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-background dark:bg-dark-bg px-6">
+        <div className="min-h-screen flex flex-col justify-center items-center bg-transparent px-6 relative overflow-hidden">
+            <VibrantBackground />
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-md w-full text-center space-y-6"
+                className="max-w-md w-full text-center space-y-6 relative z-10"
             >
                 <div className="inline-flex items-center justify-center p-4 bg-primary-50 dark:bg-primary/10 text-primary dark:text-primary-300 rounded-2xl border border-primary/10">
                     <FileQuestion className="h-10 w-10" />

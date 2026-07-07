@@ -5,8 +5,8 @@ import { Sidebar } from './Sidebar.js';
 import { Topbar } from './Topbar.js';
 import { cn } from '../../utils/cn.js';
 import { Breadcrumb } from '../ui/Breadcrumb.js';
-import { Skeleton } from '../ui/Skeleton.js';
 import { GraduationCap } from 'lucide-react';
+import { VibrantBackground } from '../ui/VibrantBackground.js';
 
 interface DashboardLayoutProps {
   allowedRoles?: Array<'student' | 'faculty' | 'admin'>;
@@ -86,7 +86,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ allowedRoles }
   const breadcrumbs = getBreadcrumbs(location.pathname);
 
   return (
-    <div className="min-h-screen flex bg-background dark:bg-dark-bg">
+    <div className="min-h-screen flex bg-background dark:bg-dark-bg relative overflow-hidden">
+      <VibrantBackground />
+
       {/* Mobile Backdrop */}
       {isMobileOpen && (
         <div
@@ -98,7 +100,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ allowedRoles }
       {/* Sidebar */}
       <div
         className={cn(
-          'md:sticky top-0 z-40 fixed md:translate-x-0 transition-transform duration-300 h-screen',
+          'md:sticky top-0 z-40 fixed md:translate-x-0 transition-transform duration-300 h-screen relative z-10',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
@@ -106,7 +108,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ allowedRoles }
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <Topbar onMenuToggle={() => setIsMobileOpen(!isMobileOpen)} />
 
         {/* Breadcrumb Bar */}
@@ -115,7 +117,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ allowedRoles }
         </div>
 
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-          <div className="max-w-7xl w-full mx-auto">
+          <div className="max-w-7xl w-full mx-auto ch-page-turn">
             <Outlet />
           </div>
         </main>

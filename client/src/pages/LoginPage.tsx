@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../context/AuthContext.js';
 import { Input } from '../components/ui/Input.js';
 import { Button } from '../components/ui/Button.js';
-import { GraduationCap, Eye, EyeOff, AlertCircle, Sparkles, Shield, BookOpen } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { GateIntro } from '../components/intro/GateIntro.js';
 
 interface LoginFormInputs {
@@ -129,7 +129,17 @@ export const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center select-none">
+        <div className="mt-6 text-center select-none flex flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem('ch-intro-seen');
+              window.location.reload();
+            }}
+            className="text-[10px] text-primary hover:underline font-medium transition-colors"
+          >
+            Replay Entrance Intro ↻
+          </button>
           <p className="text-[10px] text-text-secondary dark:text-secondary-500">
             Powered by Career Hub Enterprise Platform
           </p>
