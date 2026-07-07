@@ -35,7 +35,10 @@ app.use('/api', limiter);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+      'http://localhost:5173',
+      'https://your-vercel-domain.vercel.app'
+    ],
     credentials: true,
   })
 );
