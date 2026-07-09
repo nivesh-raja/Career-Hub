@@ -6,6 +6,18 @@ import AIChat from '../models/aiChat.model.js';
 import AIDocument from '../models/aiDocument.model.js';
 import DocumentChunk from '../models/documentChunk.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import {
+    classifyIntent,
+    generateNotesService,
+    generateFlashcardsService,
+    generateQuizService,
+    generateStudyPlanService,
+    generateAssignmentHelperService,
+    generateFacultyAssignmentService,
+    generateQuestionPaperService,
+    generateLessonPlanService,
+    generateNoticeReportService
+} from '../services/aiAcademic.service.js';
 
 // ── Health check (public) ───────────────────────────────────────────
 export const healthCheck = async (_req: Request, res: Response): Promise<void> => {
@@ -23,6 +35,114 @@ export const chat = async (req: AuthenticatedRequest, res: Response): Promise<vo
     }
 
     try {
+        const role = req.user?.role || 'student';
+        let classification = await classifyIntent(prompt, role);
+
+        if (classification.intent !== 'general-chat') {
+            let { intent, params } = classification;
+
+            // Role intent classification security & redirection checks
+            if (role === 'admin') {
+                const studentIntents = ['generate-notes', 'generate-flashcards', 'generate-quiz', 'generate-study-plan', 'assignment-helper'];
+                if (studentIntents.includes(intent)) {
+                    const chatDoc = await AIChat.create({
+                        user: req.user?._id,
+                        prompt,
+                        response: "This tool is unavailable for Administrators.",
+                        role: req.user?.role,
+                        conversationTitle: `System Blocked`,
+                        sourceDocuments: []
+                    });
+                    res.status(200).json({
+                        success: true,
+                        intent: 'blocked',
+                        response: "This tool is unavailable for Administrators.",
+                        chat: chatDoc,
+                        sourceDocuments: []
+                    });
+                    return;
+                }
+            }
+
+            if (role === 'faculty') {
+                if (intent === 'generate-quiz') {
+                    // Redirect Create quiz -> Question Paper Generator
+                    intent = 'question-paper-generator';
+                } else if (['generate-notes', 'generate-flashcards', 'generate-study-plan', 'assignment-helper'].includes(intent)) {
+                    // Faculty should not generate student tools, downgrade to general response assistant QA
+                    classification.intent = 'general-chat';
+                }
+            }
+
+            if (classification.intent !== 'general-chat') {
+                let doc: any = null;
+                let responseText = '';
+                let sourceDocs: string[] = [];
+
+                if (intent === 'generate-notes') {
+                    doc = await generateNotesService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                    responseText = `I've generated detailed notes for you!\n\n${doc.content}`;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'generate-flashcards') {
+                    doc = await generateFlashcardsService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                    responseText = `I've created ${doc.cards.length} study flashcards for you on **${doc.topic}**! You can find them saved in your Library.`;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'generate-quiz') {
+                    doc = await generateQuizService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                    responseText = `I've generated a quiz with ${doc.questions.length} questions on **${doc.topic}**! Try answering them in the interactive study suite.`;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'generate-study-plan') {
+                    doc = await generateStudyPlanService({
+                        examDate: params.examDate || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+                        subjects: params.subjects?.length ? params.subjects : ['General Coursework'],
+                        dailyStudyHours: Number(params.dailyStudyHours) || 4,
+                        currentProgress: params.currentProgress || 'N/A',
+                        userId: String(req.user?._id)
+                    });
+                    responseText = `I've compiled a study planner starting today. Key sections:\n\n### Daily Strategy\n${doc.planData.dailyPlan}\n\n### Milestones\n${doc.planData.weeklyPlan}`;
+                } else if (intent === 'assignment-helper') {
+                    doc = await generateAssignmentHelperService({ assignmentText: params.assignmentText || prompt, userId: String(req.user?._id) });
+                    responseText = doc.content;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'faculty-assignment-generator' && (role === 'faculty' || role === 'admin')) {
+                    doc = await generateFacultyAssignmentService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                    responseText = doc.content;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'question-paper-generator' && (role === 'faculty' || role === 'admin')) {
+                    doc = await generateQuestionPaperService({ ...params, subject: params.subject || 'General Study', userId: String(req.user?._id) });
+                    responseText = doc.content;
+                    sourceDocs = doc.sourceDocuments || [];
+                } else if (intent === 'lesson-planner' && (role === 'faculty' || role === 'admin')) {
+                    doc = await generateLessonPlanService({ ...params, subject: params.subject || 'Syllabus Course', topics: params.topics || [prompt], userId: String(req.user?._id) });
+                    responseText = doc.weeklyPlan;
+                } else if (intent === 'notice-report-generator' && role === 'admin') {
+                    doc = await generateNoticeReportService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                    responseText = doc.content;
+                }
+
+                if (doc) {
+                    const chatDoc = await AIChat.create({
+                        user: req.user?._id,
+                        prompt,
+                        response: responseText,
+                        role: req.user?.role,
+                        conversationTitle: `Generated: ${doc.title || intent}`,
+                        sourceDocuments: sourceDocs
+                    });
+                    await logActivity(req, req.user?.name || 'User', `AI Intent: ${intent}`, String(doc._id));
+                    res.status(200).json({
+                        success: true,
+                        intent,
+                        data: doc,
+                        response: responseText,
+                        chat: chatDoc,
+                        sourceDocuments: sourceDocs
+                    });
+                    return;
+                }
+            }
+        }
+
         const SYSTEM = `You are Career Hub AI, an academic assistant for colleges and universities.
 Answer clearly, professionally, and helpfully.
 For academic topics provide structured, detailed responses with examples.

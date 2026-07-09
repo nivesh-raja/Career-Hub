@@ -493,7 +493,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               }`}
           >
             <span>{t.message}</span>
-            <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))} className="text-text-secondary hover:text-text-primary">
+            <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))} className="text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -505,8 +505,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
         <div className="space-y-6">
           <div className="bg-primary/5 border border-primary/10 rounded-lg p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-text-primary">Welcome Back, {user?.name}!</h1>
-              <p className="text-xs text-text-secondary mt-1">
+              <h1 className="text-2xl font-bold text-text-primary dark:text-gray-200">Welcome Back, {user?.name}!</h1>
+              <p className="text-xs text-text-secondary dark:text-slate-400 mt-1">
                 Faculty Advisor • {user?.department?.name || 'Academic Division'}
               </p>
             </div>
@@ -516,10 +516,10 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-text-secondary uppercase">Your Classrooms</p>
+                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Your Classrooms</p>
                   <h3 className="text-xl font-bold mt-1">{facultyClassrooms.length} Sections</h3>
                 </div>
                 <div className="p-2 border rounded-md text-primary bg-primary-light border-primary/10">
@@ -527,10 +527,10 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-text-secondary uppercase">Total Scholars</p>
+                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Total Scholars</p>
                   <h3 className="text-xl font-bold mt-1">{allStudents.length} Students</h3>
                 </div>
                 <div className="p-2 border rounded-md text-success bg-success-light border-success/10">
@@ -538,10 +538,10 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-text-secondary uppercase">Bulletins Published</p>
+                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Bulletins Published</p>
                   <h3 className="text-xl font-bold mt-1">
                     {announcementsData?.announcements.filter(a => a.faculty?._id === user?._id).length || 0} Notices
                   </h3>
@@ -566,19 +566,19 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <div
                       key={c._id}
                       onClick={() => { setSelectedClassroomId(c._id); setClassroomTab('overview'); }}
-                      className="p-4 border border-border rounded-lg bg-slate-50/20 hover:border-primary/40 hover:bg-slate-50/50 cursor-pointer flex justify-between items-center transition-all duration-150"
+                      className="p-4 border border-border dark:border-dark-border rounded-lg bg-slate-50/20 dark:bg-dark-surface/40 hover:border-primary/40 hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30 cursor-pointer flex justify-between items-center transition-all duration-150"
                     >
                       <div>
-                        <h4 className="text-xs font-bold text-text-primary">{c.className}</h4>
-                        <span className="text-[10px] text-text-secondary mt-1 block">
+                        <h4 className="text-xs font-bold text-text-primary dark:text-gray-200">{c.className}</h4>
+                        <span className="text-[10px] text-text-secondary dark:text-slate-400 mt-1 block">
                           Sem {c.semester} • Section {c.section} • {c.academicYear}
                         </span>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-text-secondary" />
+                      <ChevronRight className="h-4 w-4 text-text-secondary dark:text-slate-400" />
                     </div>
                   ))}
                   {facultyClassrooms.length === 0 && (
-                    <div className="col-span-2 py-8 text-center text-xs text-text-secondary italic">
+                    <div className="col-span-2 py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
                       No classroom assignments registered. Contact administrators.
                     </div>
                   )}
@@ -587,27 +587,27 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             </Card>
 
             {/* Today Schedule List */}
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardHeader>
                 <CardTitle>Weekly Lectures</CardTitle>
                 <CardDescription>Timetable slots mapped in the database.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {timetablesData?.timetables.flatMap(t => t.slots.filter(s => s.faculty?._id === user?._id).map(s => ({ day: t.dayOfWeek, ...s }))).map((slot, idx) => (
-                  <div key={idx} className="p-3 border border-border rounded bg-slate-50/50 flex gap-3">
+                  <div key={idx} className="p-3 border border-border dark:border-dark-border rounded bg-slate-50/50 dark:bg-dark-surface/40 flex gap-3">
                     <div className="p-1.5 bg-warning-light border border-warning/10 text-warning-text rounded-md self-start shrink-0">
                       <Clock className="h-3.5 w-3.5" />
                     </div>
                     <div>
-                      <h5 className="text-xs font-bold text-text-primary">{slot.subject?.name}</h5>
-                      <p className="text-[9px] text-text-secondary font-semibold mt-1">
+                      <h5 className="text-xs font-bold text-text-primary dark:text-gray-200">{slot.subject?.name}</h5>
+                      <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold mt-1">
                         {slot.day} • {slot.time} • Room {slot.room}
                       </p>
                     </div>
                   </div>
                 ))}
                 {(!timetablesData || timetablesData.timetables.length === 0) && (
-                  <div className="py-8 text-center text-xs text-text-secondary italic">
+                  <div className="py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
                     No active lecture schedule slots found.
                   </div>
                 )}
@@ -619,7 +619,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Classrooms view */}
       {view === 'classrooms' && !selectedClassroomId && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Assigned Classrooms Directory</CardTitle>
             <CardDescription>Click a classroom to access academic workspace panels.</CardDescription>
@@ -629,14 +629,14 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               <div
                 key={c._id}
                 onClick={() => { setSelectedClassroomId(c._id); setClassroomTab('overview'); }}
-                className="p-5 border border-border rounded-lg bg-slate-50/30 hover:border-primary/50 hover:bg-slate-50/70 hover:shadow-subtle cursor-pointer flex flex-col justify-between transition-all"
+                className="p-5 border border-border dark:border-dark-border rounded-lg bg-slate-50/30 dark:bg-dark-surface/40 hover:border-primary/50 hover:bg-slate-50/70 hover:shadow-subtle cursor-pointer flex flex-col justify-between transition-all"
               >
                 <div>
-                  <h4 className="text-sm font-bold text-text-primary">{c.className}</h4>
-                  <p className="text-xs text-text-secondary font-medium block mt-1">
+                  <h4 className="text-sm font-bold text-text-primary dark:text-gray-200">{c.className}</h4>
+                  <p className="text-xs text-text-secondary dark:text-slate-400 font-medium block mt-1">
                     {c.department?.name} • Year {c.academicYear} • Sec {c.section}
                   </p>
-                  <div className="flex gap-2 mt-4 text-[10px] text-text-secondary font-bold">
+                  <div className="flex gap-2 mt-4 text-[10px] text-text-secondary dark:text-slate-400 font-bold">
                     <Badge variant="primary" className="py-0 px-2">{c.semester} Semester</Badge>
                     <Badge variant="secondary" className="py-0 px-2">{c.students.length} Pupils</Badge>
                   </div>
@@ -648,7 +648,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               </div>
             ))}
             {facultyClassrooms.length === 0 && (
-              <div className="col-span-3 py-12 text-center text-xs text-text-secondary border border-dashed border-border rounded-lg italic">
+              <div className="col-span-3 py-12 text-center text-xs text-text-secondary dark:text-slate-400 border border-dashed border-border dark:border-dark-border rounded-lg italic">
                 No active classrooms assigned.
               </div>
             )}
@@ -662,15 +662,15 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
           <div className="flex justify-between items-center">
             <button
               onClick={() => setSelectedClassroomId(null)}
-              className="text-xs text-text-secondary hover:text-text-primary font-bold flex items-center gap-1 select-none"
+              className="text-xs text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200 font-bold flex items-center gap-1 select-none"
             >
               ← Back to Classrooms List
             </button>
-            <h2 className="text-lg font-bold text-text-primary">{selectedClassroom.className} workspace</h2>
+            <h2 className="text-lg font-bold text-text-primary dark:text-gray-200">{selectedClassroom.className} workspace</h2>
           </div>
 
           {/* Sub-tabs */}
-          <div className="flex flex-wrap gap-1 bg-slate-100 border border-border rounded-lg p-1">
+          <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg p-1">
             {[
               { id: 'overview', label: 'Overview' },
               { id: 'students', label: 'Student Roster' },
@@ -682,7 +682,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               <button
                 key={tab.id}
                 onClick={() => setClassroomTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-colors ${classroomTab === tab.id ? 'bg-white text-text-primary shadow-subtle' : 'text-text-secondary hover:bg-slate-200'
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-colors ${classroomTab === tab.id ? 'bg-white text-text-primary dark:text-gray-200 shadow-subtle' : 'text-text-secondary dark:text-slate-400 hover:bg-slate-200'
                   }`}
               >
                 {tab.label}
@@ -693,33 +693,33 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
           {/* Classroom Overview Tab */}
           {classroomTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="md:col-span-2 bg-white">
+              <Card className="md:col-span-2 bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
                 <CardHeader>
                   <CardTitle>Class Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="text-xs space-y-4">
-                  <div className="grid grid-cols-2 gap-4 border-b border-border/40 pb-4">
+                  <div className="grid grid-cols-2 gap-4 border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                     <div>
-                      <span className="font-semibold text-text-secondary">Class Name</span>
-                      <p className="font-bold text-text-primary mt-0.5">{selectedClassroom.className}</p>
+                      <span className="font-semibold text-text-secondary dark:text-slate-400">Class Name</span>
+                      <p className="font-bold text-text-primary dark:text-gray-200 mt-0.5">{selectedClassroom.className}</p>
                     </div>
                     <div>
-                      <span className="font-semibold text-text-secondary">Semester & Section</span>
-                      <p className="font-bold text-text-primary mt-0.5">{selectedClassroom.semester} (Sec {selectedClassroom.section})</p>
+                      <span className="font-semibold text-text-secondary dark:text-slate-400">Semester & Section</span>
+                      <p className="font-bold text-text-primary dark:text-gray-200 mt-0.5">{selectedClassroom.semester} (Sec {selectedClassroom.section})</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 border-b border-border/40 pb-4">
+                  <div className="grid grid-cols-2 gap-4 border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                     <div>
-                      <span className="font-semibold text-text-secondary">Academic Year</span>
-                      <p className="font-bold text-text-primary mt-0.5">{selectedClassroom.academicYear}</p>
+                      <span className="font-semibold text-text-secondary dark:text-slate-400">Academic Year</span>
+                      <p className="font-bold text-text-primary dark:text-gray-200 mt-0.5">{selectedClassroom.academicYear}</p>
                     </div>
                     <div>
-                      <span className="font-semibold text-text-secondary">Department Mapped</span>
-                      <p className="font-bold text-text-primary mt-0.5">{selectedClassroom.department?.name}</p>
+                      <span className="font-semibold text-text-secondary dark:text-slate-400">Department Mapped</span>
+                      <p className="font-bold text-text-primary dark:text-gray-200 mt-0.5">{selectedClassroom.department?.name}</p>
                     </div>
                   </div>
                   <div>
-                    <span className="font-semibold text-text-secondary">Assigned Subjects</span>
+                    <span className="font-semibold text-text-secondary dark:text-slate-400">Assigned Subjects</span>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {selectedClassroom.subjects.map(sub => (
                         <Badge key={sub._id} variant="primary" className="py-0 px-2 text-[10px]">
@@ -731,7 +731,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 </CardContent>
               </Card>
 
-              <Card className="bg-white">
+              <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
@@ -756,7 +756,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
           {/* Student Roster Tab */}
           {classroomTab === 'students' && (
-            <Card className="bg-white">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardHeader>
                 <CardTitle>Student Roster</CardTitle>
                 <CardDescription>Listing students currently enrolled in this classroom section.</CardDescription>
@@ -765,7 +765,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                      <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                         <th className="py-3 px-4">Register Number</th>
                         <th className="py-3 px-4">Name</th>
                         <th className="py-3 px-4">Email</th>
@@ -773,15 +773,15 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         <th className="py-3 px-4">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/60">
+                    <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                       {selectedClassroom.students.map((st) => (
-                        <tr key={st._id} className="hover:bg-slate-50/20">
-                          <td className="py-2.5 px-4 font-semibold text-text-primary">
+                        <tr key={st._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                          <td className="py-2.5 px-4 font-semibold text-text-primary dark:text-gray-200">
                             REG-{st._id.substring(st._id.length - 6).toUpperCase()}
                           </td>
-                          <td className="py-2.5 px-4 font-bold text-text-primary">{st.name}</td>
-                          <td className="py-2.5 px-4 text-text-secondary">{st.email}</td>
-                          <td className="py-2.5 px-4 text-text-secondary">{st.phone || 'N/A'}</td>
+                          <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{st.name}</td>
+                          <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{st.email}</td>
+                          <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{st.phone || 'N/A'}</td>
                           <td className="py-2.5 px-4">
                             <Badge variant="success">Enrolled</Badge>
                           </td>
@@ -799,8 +799,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
           {/* Assignments Ledger Tab */}
           {classroomTab === 'assignments' && (
             <div className="space-y-6">
-              <Card className="bg-white">
-                <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+              <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                   <div>
                     <CardTitle>Homework Tasks Checklist</CardTitle>
                     <CardDescription>Manage homework postings and grade submissions.</CardDescription>
@@ -816,7 +816,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                        <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                           <th className="py-3 px-4">Assignment Title</th>
                           <th className="py-3 px-4">Subject</th>
                           <th className="py-3 px-4">Due Date</th>
@@ -825,14 +825,14 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                           <th className="py-3 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border/60">
+                      <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                         {assignmentsData?.assignments
                           .filter(as => as.classroom?._id === selectedClassroomId)
                           .map(as => (
-                            <tr key={as._id} className="hover:bg-slate-50/20">
-                              <td className="py-2.5 px-4 font-bold text-text-primary">{as.title}</td>
-                              <td className="py-2.5 px-4 text-text-secondary">{as.subject?.name}</td>
-                              <td className="py-2.5 px-4 text-text-secondary">{new Date(as.dueDate).toLocaleDateString()}</td>
+                            <tr key={as._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                              <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{as.title}</td>
+                              <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{as.subject?.name}</td>
+                              <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{new Date(as.dueDate).toLocaleDateString()}</td>
                               <td className="py-2.5 px-4 font-bold text-primary">{as.maxMarks} Marks</td>
                               <td className="py-2.5 px-4">
                                 <Badge variant={as.status === 'Published' ? 'success' : as.status === 'Closed' ? 'danger' : 'secondary'}>
@@ -842,13 +842,13 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                               <td className="py-2.5 px-4 text-right space-x-1">
                                 <button
                                   onClick={() => handleEditAssignment(as)}
-                                  className="p-1 hover:bg-slate-100 rounded border border-border text-text-secondary"
+                                  className="p-1 hover:bg-slate-100 dark:bg-dark-surface rounded border border-border dark:border-dark-border text-text-secondary dark:text-slate-400"
                                 >
                                   <Edit2 className="h-3.5 w-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteAssignment(as._id)}
-                                  className="p-1 hover:bg-danger-light hover:text-danger-text rounded border border-border text-text-secondary"
+                                  className="p-1 hover:bg-danger-light hover:text-danger-text rounded border border-border dark:border-dark-border text-text-secondary dark:text-slate-400"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
@@ -857,7 +857,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                           ))}
                         {(!assignmentsData || assignmentsData.assignments.filter(as => as.classroom?._id === selectedClassroomId).length === 0) && (
                           <tr>
-                            <td colSpan={6} className="py-8 text-center text-text-secondary italic">
+                            <td colSpan={6} className="py-8 text-center text-text-secondary dark:text-slate-400 italic">
                               No assignments published for this section.
                             </td>
                           </tr>
@@ -869,7 +869,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               </Card>
 
               {/* Submissions Section */}
-              <Card className="bg-white">
+              <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
                 <CardHeader>
                   <CardTitle>Grading & Student Submissions</CardTitle>
                   <CardDescription>Roster of submitted assignment answers requiring feedback.</CardDescription>
@@ -878,7 +878,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                        <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                           <th className="py-3 px-4">Student</th>
                           <th className="py-3 px-4">Assignment</th>
                           <th className="py-3 px-4">Submission Date</th>
@@ -887,14 +887,14 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                           <th className="py-3 px-4 text-right">Review</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border/60">
+                      <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                         {submissionsData?.submissions
                           .filter(sub => assignmentsData?.assignments.some(as => as._id === sub.assignment?._id && as.classroom?._id === selectedClassroomId))
                           .map(sub => (
-                            <tr key={sub._id} className="hover:bg-slate-50/20">
-                              <td className="py-2.5 px-4 font-bold text-text-primary">{sub.student?.name}</td>
-                              <td className="py-2.5 px-4 text-text-secondary">{sub.assignment?.title}</td>
-                              <td className="py-2.5 px-4 text-text-secondary">{new Date(sub.submissionDate).toLocaleString()}</td>
+                            <tr key={sub._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                              <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{sub.student?.name}</td>
+                              <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{sub.assignment?.title}</td>
+                              <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{new Date(sub.submissionDate).toLocaleString()}</td>
                               <td className="py-2.5 px-4 font-semibold">
                                 {sub.marks !== undefined ? `${sub.marks} / ${sub.assignment?.maxMarks}` : 'Not Graded'}
                               </td>
@@ -910,7 +910,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                                     setGradeMarks(sub.marks || 0);
                                     setGradeFeedback(sub.feedback || '');
                                   }}
-                                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-border text-text-primary rounded text-[10px] font-semibold"
+                                  className="px-2.5 py-1 bg-slate-100 dark:bg-dark-surface hover:bg-slate-200 border border-border dark:border-dark-border text-text-primary dark:text-gray-200 rounded text-[10px] font-semibold"
                                 >
                                   Grade Book
                                 </button>
@@ -919,7 +919,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                           ))}
                         {(!submissionsData || submissionsData.submissions.filter(sub => assignmentsData?.assignments.some(as => as._id === sub.assignment?._id && as.classroom?._id === selectedClassroomId)).length === 0) && (
                           <tr>
-                            <td colSpan={6} className="py-8 text-center text-text-secondary italic">
+                            <td colSpan={6} className="py-8 text-center text-text-secondary dark:text-slate-400 italic">
                               No student submissions uploaded yet.
                             </td>
                           </tr>
@@ -934,8 +934,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
           {/* Study Materials Tab */}
           {classroomTab === 'materials' && (
-            <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                 <div>
                   <CardTitle>Study Materials Library</CardTitle>
                   <CardDescription>Lecture files shared with the class.</CardDescription>
@@ -951,7 +951,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                      <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                         <th className="py-3 px-4">Title</th>
                         <th className="py-3 px-4">Category</th>
                         <th className="py-3 px-4">Course Subject</th>
@@ -959,21 +959,21 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         <th className="py-3 px-4 text-right">Delete</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/60">
+                    <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                       {materialsData?.materials
                         .filter(m => m.classroom?._id === selectedClassroomId)
                         .map(m => (
-                          <tr key={m._id} className="hover:bg-slate-50/20">
-                            <td className="py-2.5 px-4 font-bold text-text-primary">{m.title}</td>
+                          <tr key={m._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                            <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{m.title}</td>
                             <td className="py-2.5 px-4">
                               <Badge variant="secondary">{m.category}</Badge>
                             </td>
-                            <td className="py-2.5 px-4 text-text-secondary">{m.subject?.name}</td>
-                            <td className="py-2.5 px-4 text-text-secondary font-bold">{m.downloads} downloads</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{m.subject?.name}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400 font-bold">{m.downloads} downloads</td>
                             <td className="py-2.5 px-4 text-right">
                               <button
                                 onClick={() => handleDeleteMaterial(m._id)}
-                                className="p-1 hover:bg-danger-light text-text-secondary hover:text-danger-text rounded border border-border"
+                                className="p-1 hover:bg-danger-light text-text-secondary dark:text-slate-400 hover:text-danger-text rounded border border-border dark:border-dark-border"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -982,7 +982,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         ))}
                       {(!materialsData || materialsData.materials.filter(m => m.classroom?._id === selectedClassroomId).length === 0) && (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-text-secondary italic">
+                          <td colSpan={5} className="py-8 text-center text-text-secondary dark:text-slate-400 italic">
                             No study materials shared.
                           </td>
                         </tr>
@@ -996,8 +996,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
           {/* Question Papers Tab */}
           {classroomTab === 'questionpapers' && (
-            <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                 <div>
                   <CardTitle>Previous Question Paper Sets</CardTitle>
                   <CardDescription>Archive of internal exam papers or model sets.</CardDescription>
@@ -1013,7 +1013,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                      <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                         <th className="py-3 px-4">Paper Title</th>
                         <th className="py-3 px-4">Subject</th>
                         <th className="py-3 px-4">Category</th>
@@ -1021,19 +1021,19 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         <th className="py-3 px-4 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/60">
+                    <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                       {papersData?.questionPapers
                         .filter(p => p.subject?.code && selectedClassroom.subjects.some(sub => sub._id === p.subject?._id))
                         .map(p => (
-                          <tr key={p._id} className="hover:bg-slate-50/20">
-                            <td className="py-2.5 px-4 font-bold text-text-primary">{p.title}</td>
-                            <td className="py-2.5 px-4 text-text-secondary">{p.subject?.name}</td>
-                            <td className="py-2.5 px-4 text-text-secondary font-bold">{p.category}</td>
-                            <td className="py-2.5 px-4 text-text-secondary">{p.academicYear}</td>
+                          <tr key={p._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                            <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{p.title}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{p.subject?.name}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400 font-bold">{p.category}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{p.academicYear}</td>
                             <td className="py-2.5 px-4 text-right">
                               <button
                                 onClick={() => handleDeletePaper(p._id)}
-                                className="p-1 hover:bg-danger-light text-text-secondary hover:text-danger-text rounded border border-border"
+                                className="p-1 hover:bg-danger-light text-text-secondary dark:text-slate-400 hover:text-danger-text rounded border border-border dark:border-dark-border"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -1042,7 +1042,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         ))}
                       {(!papersData || papersData.questionPapers.filter(p => selectedClassroom.subjects.some(sub => sub._id === p.subject?._id)).length === 0) && (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-text-secondary italic">
+                          <td colSpan={5} className="py-8 text-center text-text-secondary dark:text-slate-400 italic">
                             No exam booklets uploaded.
                           </td>
                         </tr>
@@ -1056,8 +1056,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
           {/* Announcements Tab */}
           {classroomTab === 'announcements' && (
-            <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 dark:border-dark-border/40 pb-4">
                 <div>
                   <CardTitle>Bulletins notices</CardTitle>
                   <CardDescription>Manage messages visible on the student Notice boards.</CardDescription>
@@ -1073,7 +1073,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                      <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                         <th className="py-3 px-4">Notice Title</th>
                         <th className="py-3 px-4">Date</th>
                         <th className="py-3 px-4">Priority</th>
@@ -1081,21 +1081,21 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         <th className="py-3 px-4 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/60">
+                    <tbody className="divide-y divide-border/60 dark:divide-dark-border/60">
                       {announcementsData?.announcements
                         .filter(a => a.targetClassroom?._id === selectedClassroomId)
                         .map(a => (
-                          <tr key={a._id} className="hover:bg-slate-50/20">
-                            <td className="py-2.5 px-4 font-bold text-text-primary">{a.title}</td>
-                            <td className="py-2.5 px-4 text-text-secondary">{new Date(a.publishDate).toLocaleDateString()}</td>
+                          <tr key={a._id} className="hover:bg-slate-50/20 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                            <td className="py-2.5 px-4 font-bold text-text-primary dark:text-gray-200">{a.title}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400">{new Date(a.publishDate).toLocaleDateString()}</td>
                             <td className="py-2.5 px-4">
                               <Badge variant={a.priority === 'high' ? 'danger' : 'secondary'}>{a.priority}</Badge>
                             </td>
-                            <td className="py-2.5 px-4 text-text-secondary truncate max-w-xs">{a.message}</td>
+                            <td className="py-2.5 px-4 text-text-secondary dark:text-slate-400 truncate max-w-xs">{a.message}</td>
                             <td className="py-2.5 px-4 text-right">
                               <button
                                 onClick={() => handleDeleteAnnouncement(a._id)}
-                                className="p-1 hover:bg-danger-light text-text-secondary hover:text-danger-text rounded border border-border"
+                                className="p-1 hover:bg-danger-light text-text-secondary dark:text-slate-400 hover:text-danger-text rounded border border-border dark:border-dark-border"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -1104,7 +1104,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                         ))}
                       {(!announcementsData || announcementsData.announcements.filter(a => a.targetClassroom?._id === selectedClassroomId).length === 0) && (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-text-secondary italic">
+                          <td colSpan={5} className="py-8 text-center text-text-secondary dark:text-slate-400 italic">
                             No active notices board alerts.
                           </td>
                         </tr>
@@ -1120,27 +1120,27 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Students view */}
       {view === 'students' && (
-        <Card className="bg-white">
-          <CardHeader className="border-b border-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>Students Directory</CardTitle>
               <CardDescription>Unified directory of student scholars enrolled in your classroom divisions.</CardDescription>
             </div>
             <div className="flex gap-2">
               <div className="relative w-48">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary" />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-secondary dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search students..."
                   value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
-                  className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary"
+                  className="pl-9 pr-3 py-2 w-full text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-200 dark:text-gray-150 rounded-md focus:outline-none focus:bg-white dark:focus:bg-dark-card focus:border-primary"
                 />
               </div>
               <select
                 value={studentSortField}
                 onChange={(e) => setStudentSortField(e.target.value as any)}
-                className="text-xs bg-slate-50 border border-border rounded px-2 py-1 focus:outline-none"
+                className="text-xs bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border text-text-primary dark:text-gray-200 dark:text-gray-250 rounded px-2 py-1 focus:outline-none cursor-pointer"
               >
                 <option value="name">Sort by Name</option>
                 <option value="email">Sort by Email</option>
@@ -1151,7 +1151,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Register Number</th>
                     <th className="py-3 px-4">Name</th>
                     <th className="py-3 px-4">Email</th>
@@ -1159,21 +1159,21 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <th className="py-3 px-4">Classroom Name</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {sortedStudents.map(st => (
-                    <tr key={st._id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-semibold text-text-primary">
+                    <tr key={st._id} className="hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                      <td className="py-3 px-4 font-semibold text-text-primary dark:text-gray-200">
                         REG-{st._id.substring(st._id.length - 6).toUpperCase()}
                       </td>
-                      <td className="py-3 px-4 font-bold text-text-primary">{st.name}</td>
-                      <td className="py-3 px-4 text-text-secondary">{st.email}</td>
-                      <td className="py-3 px-4 text-text-secondary">{st.phone || 'N/A'}</td>
-                      <td className="py-3 px-4 font-semibold text-text-secondary">{st.classroomName}</td>
+                      <td className="py-3 px-4 font-bold text-text-primary dark:text-gray-200">{st.name}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{st.email}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{st.phone || 'N/A'}</td>
+                      <td className="py-3 px-4 font-semibold text-text-secondary dark:text-slate-400">{st.classroomName}</td>
                     </tr>
                   ))}
                   {sortedStudents.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-text-secondary italic">
+                      <td colSpan={5} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
                         No student directory documents matched filters.
                       </td>
                     </tr>
@@ -1189,7 +1189,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Assignments view */}
       {view === 'assignments' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Global Assignments Checklist</CardTitle>
             <CardDescription>Homework postings and grading lists.</CardDescription>
@@ -1198,7 +1198,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Title</th>
                     <th className="py-3 px-4">Classroom</th>
                     <th className="py-3 px-4">Subject</th>
@@ -1207,13 +1207,13 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {assignmentsData?.assignments.map(as => (
-                    <tr key={as._id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-text-primary">{as.title}</td>
-                      <td className="py-3 px-4 text-text-secondary">{as.classroom?.className}</td>
-                      <td className="py-3 px-4 text-text-secondary">{as.subject?.name}</td>
-                      <td className="py-3 px-4 text-text-secondary">{new Date(as.dueDate).toLocaleDateString()}</td>
+                    <tr key={as._id} className="hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                      <td className="py-3 px-4 font-bold text-text-primary dark:text-gray-200">{as.title}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{as.classroom?.className}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{as.subject?.name}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{new Date(as.dueDate).toLocaleDateString()}</td>
                       <td className="py-3 px-4">
                         <Badge variant={as.status === 'Published' ? 'success' : 'danger'}>{as.status}</Badge>
                       </td>
@@ -1223,7 +1223,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                             setSelectedClassroomId(as.classroom?._id);
                             setClassroomTab('assignments');
                           }}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-border rounded text-[10px] font-semibold text-text-primary"
+                          className="px-2.5 py-1 bg-slate-100 dark:bg-dark-surface hover:bg-slate-200 border border-border dark:border-dark-border rounded text-[10px] font-semibold text-text-primary dark:text-gray-200"
                         >
                           Grade Book
                         </button>
@@ -1232,7 +1232,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   ))}
                   {(!assignmentsData || assignmentsData.assignments.length === 0) && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-text-secondary italic">
+                      <td colSpan={6} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
                         No homework assignments published.
                       </td>
                     </tr>
@@ -1246,7 +1246,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Study Materials view */}
       {view === 'materials' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Study Materials Library</CardTitle>
             <CardDescription>Shared syllabus handouts and courses documents.</CardDescription>
@@ -1255,7 +1255,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Title</th>
                     <th className="py-3 px-4">Classroom</th>
                     <th className="py-3 px-4">Subject</th>
@@ -1263,21 +1263,21 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <th className="py-3 px-4">Downloads</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {materialsData?.materials.map(m => (
-                    <tr key={m._id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-text-primary">{m.title}</td>
-                      <td className="py-3 px-4 text-text-secondary">{m.classroom?.className}</td>
-                      <td className="py-3 px-4 text-text-secondary">{m.subject?.name}</td>
+                    <tr key={m._id} className="hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                      <td className="py-3 px-4 font-bold text-text-primary dark:text-gray-200">{m.title}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{m.classroom?.className}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{m.subject?.name}</td>
                       <td className="py-3 px-4">
                         <Badge variant="primary">{m.category}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-text-secondary font-bold">{m.downloads} counts</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400 font-bold">{m.downloads} counts</td>
                     </tr>
                   ))}
                   {(!materialsData || materialsData.materials.length === 0) && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-text-secondary italic">
+                      <td colSpan={5} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
                         No lecture notes shared.
                       </td>
                     </tr>
@@ -1291,7 +1291,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Question Papers view */}
       {view === 'question-papers' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Exam Question Booklet ledger</CardTitle>
             <CardDescription>Archived previous papers, internal evaluations, and solutions.</CardDescription>
@@ -1300,7 +1300,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Booklet Title</th>
                     <th className="py-3 px-4">Subject Code</th>
                     <th className="py-3 px-4">Syllabus Course</th>
@@ -1308,19 +1308,19 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <th className="py-3 px-4">Academic Year</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {papersData?.questionPapers.map(p => (
-                    <tr key={p._id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-text-primary">{p.title}</td>
-                      <td className="py-3 px-4 font-semibold text-text-secondary">{p.subject?.code}</td>
-                      <td className="py-3 px-4 text-text-secondary">{p.subject?.name}</td>
+                    <tr key={p._id} className="hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                      <td className="py-3 px-4 font-bold text-text-primary dark:text-gray-200">{p.title}</td>
+                      <td className="py-3 px-4 font-semibold text-text-secondary dark:text-slate-400">{p.subject?.code}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{p.subject?.name}</td>
                       <td className="py-3 px-4 font-bold text-primary">{p.category}</td>
-                      <td className="py-3 px-4 text-text-secondary">{p.academicYear}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{p.academicYear}</td>
                     </tr>
                   ))}
                   {(!papersData || papersData.questionPapers.length === 0) && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-text-secondary italic">
+                      <td colSpan={5} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
                         No exams booklets uploaded.
                       </td>
                     </tr>
@@ -1334,7 +1334,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Announcements view */}
       {view === 'announcements' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Bulletins notices</CardTitle>
             <CardDescription>Important notifications posted on the Notice Board.</CardDescription>
@@ -1343,7 +1343,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-border text-[9px] font-bold text-text-secondary uppercase select-none">
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
                     <th className="py-3 px-4">Notice Title</th>
                     <th className="py-3 px-4">Target Classroom</th>
                     <th className="py-3 px-4">Priority</th>
@@ -1351,20 +1351,20 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     <th className="py-3 px-4 text-right">Delete</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border dark:divide-dark-border">
                   {announcementsData?.announcements.map(a => (
-                    <tr key={a._id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-text-primary">{a.title}</td>
-                      <td className="py-3 px-4 text-text-secondary">{a.targetClassroom?.className || 'Global Broadcast'}</td>
+                    <tr key={a._id} className="hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30">
+                      <td className="py-3 px-4 font-bold text-text-primary dark:text-gray-200">{a.title}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400">{a.targetClassroom?.className || 'Global Broadcast'}</td>
                       <td className="py-3 px-4">
                         <Badge variant={a.priority === 'high' ? 'danger' : 'secondary'}>{a.priority}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-text-secondary truncate max-w-xs">{a.message}</td>
+                      <td className="py-3 px-4 text-text-secondary dark:text-slate-400 truncate max-w-xs">{a.message}</td>
                       <td className="py-3 px-4 text-right">
                         {a.faculty?._id === user?._id && (
                           <button
                             onClick={() => handleDeleteAnnouncement(a._id)}
-                            className="p-1 hover:bg-danger-light text-text-secondary hover:text-danger-text rounded border border-border"
+                            className="p-1 hover:bg-danger-light text-text-secondary dark:text-slate-400 hover:text-danger-text rounded border border-border dark:border-dark-border"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -1374,7 +1374,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   ))}
                   {(!announcementsData || announcementsData.announcements.length === 0) && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-text-secondary italic">
+                      <td colSpan={5} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
                         No active announcements published.
                       </td>
                     </tr>
@@ -1388,7 +1388,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Global Schedule view */}
       {view === 'schedule' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Timetable schedule</CardTitle>
             <CardDescription>Academic scheduling calendar.</CardDescription>
@@ -1399,14 +1399,14 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 .filter(s => s.day === day) || [];
 
               return (
-                <div key={day} className="border-b border-border/40 pb-4 last:border-0 last:pb-0">
-                  <h4 className="font-bold text-xs text-text-primary uppercase tracking-wide mb-2.5">{day}</h4>
+                <div key={day} className="border-b border-border dark:border-dark-border/40 dark:border-dark-border/40 pb-4 last:border-0 last:pb-0">
+                  <h4 className="font-bold text-xs text-text-primary dark:text-gray-200 uppercase tracking-wide mb-2.5">{day}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {daySlots.map((slot, idx) => (
-                      <div key={idx} className="p-3 border border-border rounded bg-slate-50/50">
+                      <div key={idx} className="p-3 border border-border dark:border-dark-border rounded bg-slate-50/50 dark:bg-dark-surface/40">
                         <span className="text-[9px] font-bold text-primary tracking-wider uppercase block mb-1">{slot.time}</span>
-                        <h5 className="text-xs font-bold text-text-primary leading-snug">{slot.subject?.name}</h5>
-                        <div className="flex gap-2 text-[10px] text-text-secondary mt-2">
+                        <h5 className="text-xs font-bold text-text-primary dark:text-gray-200 leading-snug">{slot.subject?.name}</h5>
+                        <div className="flex gap-2 text-[10px] text-text-secondary dark:text-slate-400 mt-2">
                           <span>{slot.class}</span>
                           <span>•</span>
                           <span>Room {slot.room}</span>
@@ -1414,7 +1414,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                       </div>
                     ))}
                     {daySlots.length === 0 && (
-                      <span className="text-[10px] text-text-secondary italic block pt-1">No lectures scheduled.</span>
+                      <span className="text-[10px] text-text-secondary dark:text-slate-400 italic block pt-1">No lectures scheduled.</span>
                     )}
                   </div>
                 </div>
@@ -1426,7 +1426,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
 
       {/* Profile view */}
       {view === 'profile' && (
-        <Card className="bg-white">
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
           <CardHeader>
             <CardTitle>Faculty Profile Settings</CardTitle>
             <CardDescription>View qualifications, office hours, and contact parameters.</CardDescription>
@@ -1438,8 +1438,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   {user?.name.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-bold text-base text-text-primary">{user?.name}</h4>
-                  <p className="text-xs text-text-secondary mt-0.5">{user?.email}</p>
+                  <h4 className="font-bold text-base text-text-primary dark:text-gray-200">{user?.name}</h4>
+                  <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">{user?.email}</p>
                 </div>
               </div>
               <Input
@@ -1492,15 +1492,15 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                 onChange={(e) => setProfileForm({ ...profileForm, researchArea: e.target.value })}
               />
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-text-secondary select-none">Biographical Summary</label>
+                <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Biographical Summary</label>
                 <textarea
                   value={profileForm.bio}
                   onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                   placeholder="A short biography description..."
-                  className="p-3 text-sm border border-border rounded bg-white text-text-primary focus:outline-none focus:border-primary h-24"
+                  className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-24"
                 />
               </div>
-              <div className="pt-4 border-t border-border mt-6">
+              <div className="pt-4 border-t border-border dark:border-dark-border mt-6">
                 <Button type="submit" size="sm">
                   Save Faculty Profile
                 </Button>
@@ -1519,8 +1519,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* 2. CREATE/EDIT ASSIGNMENT MODAL */}
       {isCreateAssignmentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => { setIsCreateAssignmentOpen(false); setEditingAssignment(null); }} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => { setIsCreateAssignmentOpen(false); setEditingAssignment(null); }} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4.5 w-4.5" />
             </button>
             <CardHeader>
@@ -1537,13 +1537,13 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
                 />
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Task Description</label>
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Task Description</label>
                   <textarea
                     required
                     value={assignmentForm.description}
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
                     placeholder="Homework guidelines description..."
-                    className="p-3 text-sm border border-border rounded bg-white text-text-primary focus:outline-none focus:border-primary h-20"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-20"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1590,7 +1590,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   value={assignmentForm.attachments}
                   onChange={(e) => setAssignmentForm({ ...assignmentForm, attachments: e.target.value })}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => { setIsCreateAssignmentOpen(false); setEditingAssignment(null); }}>
                     Cancel
                   </Button>
@@ -1607,18 +1607,18 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* 3. REVIEW SUBMISSION / GRADING MODAL */}
       {reviewingSubmission && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setReviewingSubmission(null)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setReviewingSubmission(null)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4.5 w-4.5" />
             </button>
-            <CardHeader className="border-b border-border pb-3">
+            <CardHeader className="border-b border-border dark:border-dark-border pb-3">
               <CardTitle>Grade Submission Book</CardTitle>
               <CardDescription>Evaluate answer files uploaded by "{reviewingSubmission.student?.name}".</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <form onSubmit={handleReviewSubmissionSubmit} className="space-y-4">
-                <div className="p-3 bg-slate-50 border border-border rounded text-xs space-y-1.5">
-                  <p className="font-bold text-text-primary">Submission Assets Files:</p>
+                <div className="p-3 bg-slate-50 dark:bg-dark-surface border border-border dark:border-dark-border rounded text-xs space-y-1.5">
+                  <p className="font-bold text-text-primary dark:text-gray-200">Submission Assets Files:</p>
                   {reviewingSubmission.files.map((f, i) => (
                     <a
                       key={i}
@@ -1630,7 +1630,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                       <Download className="h-3 w-3" /> Download Solution File {i + 1}
                     </a>
                   ))}
-                  <span className="text-[10px] text-text-secondary block pt-1">
+                  <span className="text-[10px] text-text-secondary dark:text-slate-400 block pt-1">
                     Submitted: {new Date(reviewingSubmission.submissionDate).toLocaleString()}
                   </span>
                 </div>
@@ -1643,15 +1643,15 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   onChange={(e) => setGradeMarks(parseInt(e.target.value))}
                 />
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Review Comments/Feedback</label>
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Review Comments/Feedback</label>
                   <textarea
                     value={gradeFeedback}
                     onChange={(e) => setGradeFeedback(e.target.value)}
                     placeholder="Provide constructive assessment comments..."
-                    className="p-3 text-sm border border-border rounded bg-white text-text-primary focus:outline-none focus:border-primary h-20"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-20"
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setReviewingSubmission(null)}>
                     Cancel
                   </Button>
@@ -1668,8 +1668,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* 4. CREATE STUDY MATERIAL MODAL */}
       {isCreateMaterialOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreateMaterialOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateMaterialOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4.5 w-4.5" />
             </button>
             <CardHeader>
@@ -1730,7 +1730,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   value={materialForm.fileUrl}
                   onChange={(e) => setMaterialForm({ ...materialForm, fileUrl: e.target.value })}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateMaterialOpen(false)}>
                     Cancel
                   </Button>
@@ -1747,8 +1747,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* 5. CREATE QUESTION PAPER MODAL */}
       {isCreatePaperOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreatePaperOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreatePaperOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4.5 w-4.5" />
             </button>
             <CardHeader>
@@ -1810,7 +1810,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   value={paperForm.fileUrl}
                   onChange={(e) => setPaperForm({ ...paperForm, fileUrl: e.target.value })}
                 />
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreatePaperOpen(false)}>
                     Cancel
                   </Button>
@@ -1827,8 +1827,8 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* 6. CREATE ANNOUNCEMENT MODAL */}
       {isCreateAnnouncementOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <Card className="w-full max-w-md bg-white border border-border shadow-dropdown p-2 animate-fadeIn relative">
-            <button onClick={() => setIsCreateAnnouncementOpen(false)} className="absolute right-4 top-4 text-text-secondary hover:text-text-primary">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateAnnouncementOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:text-gray-200">
               <X className="h-4.5 w-4.5" />
             </button>
             <CardHeader>
@@ -1845,13 +1845,13 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
                 />
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-text-secondary select-none">Notice Message</label>
+                  <label className="text-xs font-semibold text-text-secondary dark:text-slate-400 select-none">Notice Message</label>
                   <textarea
                     required
                     value={announcementForm.message}
                     onChange={(e) => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
                     placeholder="Enter bulletin text alert..."
-                    className="p-3 text-sm border border-border rounded bg-white text-text-primary focus:outline-none focus:border-primary h-24"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-24"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1874,7 +1874,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     />
                   )}
                 </div>
-                <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
                   <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateAnnouncementOpen(false)}>
                     Cancel
                   </Button>
