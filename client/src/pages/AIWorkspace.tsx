@@ -475,12 +475,7 @@ export const AIWorkspace: React.FC = () => {
                             >
                                 <Calendar className="h-3.5 w-3.5" /> Lesson Planner
                             </button>
-                            <button
-                                onClick={() => { setSelectedLibraryItem(null); setActiveMainView('faculty-tools'); setFacultyPreferredTool('rubric-builder'); }}
-                                className={cn("text-[10px] font-bold py-1.5 px-2.5 rounded-lg border flex items-center justify-center gap-1.5 focus:outline-none transition-all", activeMainView === 'faculty-tools' && facultyPreferredTool === 'rubric-builder' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white dark:bg-dark-card border-border dark:border-dark-border hover:bg-slate-50 text-text-primary dark:text-gray-250')}
-                            >
-                                <FileText className="h-3.5 w-3.5" /> Rubrics
-                            </button>
+
                             <button
                                 onClick={() => { setSelectedLibraryItem(null); setActiveMainView('faculty-tools'); setFacultyPreferredTool('announcement-gen'); }}
                                 className={cn("text-[10px] font-bold py-1.5 px-2.5 rounded-lg border flex items-center justify-center gap-1.5 focus:outline-none transition-all col-span-2", activeMainView === 'faculty-tools' && facultyPreferredTool === 'announcement-gen' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white dark:bg-dark-card border-border dark:border-dark-border hover:bg-slate-50 text-text-primary dark:text-gray-250')}
@@ -958,18 +953,7 @@ export const AIWorkspace: React.FC = () => {
                                                 Launch Generator
                                             </button>
                                         </div>
-                                        {/* Card 5: Rubric Builder */}
-                                        <div className="p-5 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-xs hover:shadow transition-all flex flex-col justify-between">
-                                            <div className="space-y-2">
-                                                <h4 className="font-bold text-sm text-amber-600 dark:text-amber-500">Grading Rubric Builder</h4>
-                                                <p className="text-xs text-text-secondary dark:text-slate-400 leading-relaxed">
-                                                    Construct analytical rubrics, points breakdown tables, and metrics mapping for academic tests.
-                                                </p>
-                                            </div>
-                                            <button onClick={() => { setActiveMainView('faculty-tools'); setFacultyPreferredTool('rubric-builder'); }} className="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white text-xs py-2 rounded-lg font-semibold animate-none">
-                                                Launch Builder
-                                            </button>
-                                        </div>
+
                                         {/* Card 6: Classroom Assistant */}
                                         <div className="p-5 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-xs hover:shadow transition-all flex flex-col justify-between">
                                             <div className="space-y-2">
