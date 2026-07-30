@@ -25,6 +25,7 @@ export const getAnnouncements = async (req: AuthenticatedRequest, res: Response)
         { faculty: req.user._id }
       ];
     } else if (req.user?.role === 'admin') {
+      filter.targetRole = 'faculty';
       if (classroomId) filter.targetClassroom = classroomId;
       if (departmentId) filter.department = departmentId;
     }
