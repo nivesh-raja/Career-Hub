@@ -6,6 +6,7 @@ export interface IAnnouncement extends Document {
   priority: 'low' | 'medium' | 'high';
   targetClassroom?: mongoose.Types.ObjectId;
   department?: mongoose.Types.ObjectId;
+  targetRole?: 'student' | 'faculty';
   faculty: mongoose.Types.ObjectId;
   publishDate: Date;
   expiryDate?: Date;
@@ -37,6 +38,11 @@ const AnnouncementSchema: Schema = new Schema(
     department: {
       type: Schema.Types.ObjectId,
       ref: 'Department',
+    },
+    targetRole: {
+      type: String,
+      enum: ['student', 'faculty'],
+      default: 'student',
     },
     faculty: {
       type: Schema.Types.ObjectId,

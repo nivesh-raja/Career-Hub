@@ -51,6 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('token');
       if (!token) {
         setIsLoading(false);
+        setUser(null);
+        setIsAuthenticated(false);
         return;
       }
 
@@ -61,6 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAuthenticated(true);
         } else {
           localStorage.removeItem('token');
+          setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (err: any) {
         // If query fails (invalid token), clear client state
@@ -71,7 +75,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
+
     checkAuth();
+
+    // Cross-tab synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const login = async (email: string, password: string) => {

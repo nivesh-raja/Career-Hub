@@ -9,20 +9,20 @@ export const getAnnouncements = async (req: AuthenticatedRequest, res: Response)
     const filter: any = {};
 
     if (req.user?.role === 'student') {
-      // Students see global notices, their classroom's notices, or their department's notices
-      const conditions: any[] = [{ targetClassroom: { $exists: false }, department: { $exists: false } }];
+      // Students see global student notices, their classroom's student notices, or their department's student notices
+      const conditions: any[] = [{ targetRole: { $in: ['student', null, undefined] }, targetClassroom: { $exists: false }, department: { $exists: false } }];
       if (req.user.classroom) {
-        conditions.push({ targetClassroom: req.user.classroom });
+        conditions.push({ targetRole: { $in: ['student', null, undefined] }, targetClassroom: req.user.classroom });
       }
       if (req.user.department) {
-        conditions.push({ department: req.user.department });
+        conditions.push({ targetRole: { $in: ['student', null, undefined] }, department: req.user.department });
       }
       filter.$or = conditions;
     } else if (req.user?.role === 'faculty') {
-      // Faculty see announcements they created, plus global ones
+      // Faculty see announcements targeted to faculty, or announcements they created
       filter.$or = [
-        { faculty: req.user._id },
-        { targetClassroom: { $exists: false }, department: { $exists: false } }
+        { targetRole: 'faculty' },
+        { faculty: req.user._id }
       ];
     } else if (req.user?.role === 'admin') {
       if (classroomId) filter.targetClassroom = classroomId;
@@ -32,7 +32,7 @@ export const getAnnouncements = async (req: AuthenticatedRequest, res: Response)
     const announcements = await Announcement.find(filter)
       .populate('targetClassroom', 'className semester section')
       .populate('department', 'name code')
-      .populate('faculty', 'name email')
+      .populate('faculty', 'name email role')
       .sort({ publishDate: -1, createdAt: -1 });
 
     res.status(200).json({ success: true, announcements });
@@ -56,6 +56,7 @@ export const createAnnouncement = async (req: AuthenticatedRequest, res: Respons
       priority: priority || 'medium',
       targetClassroom: targetClassroom || undefined,
       department: department || undefined,
+      targetRole: req.user?.role === 'admin' ? 'faculty' : 'student',
       faculty: req.user?._id,
       publishDate: publishDate ? new Date(publishDate) : new Date(),
       expiryDate: expiryDate ? new Date(expiryDate) : undefined,

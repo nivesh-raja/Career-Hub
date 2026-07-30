@@ -51,6 +51,20 @@ interface Announcement {
   priority: string;
 }
 
+interface DbAnnouncement {
+  _id: string;
+  title: string;
+  message: string;
+  priority: 'low' | 'medium' | 'high';
+  publishDate: string;
+  faculty?: {
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
 interface DashboardData {
   success: boolean;
   stats: Stats;
@@ -172,6 +186,13 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
   const [isCreateClassroomOpen, setIsCreateClassroomOpen] = useState(false);
   const [isCreateDeptOpen, setIsCreateDeptOpen] = useState(false);
   const [isCreateSubjectOpen, setIsCreateSubjectOpen] = useState(false);
+  const [isCreateAnnouncementOpen, setIsCreateAnnouncementOpen] = useState(false);
+
+  const [newAnnouncement, setNewAnnouncement] = useState({
+    title: '',
+    message: '',
+    priority: 'medium',
+  });
 
   // Inline roles updates buffer maps (maps userId to select value)
   const [rolesBuffer, setRolesBuffer] = useState<Record<string, string>>({});
@@ -237,6 +258,39 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
     queryKey: ['subjects'],
     queryFn: async () => (await api.get('/subjects')).data,
   });
+
+  const { data: dbAnnouncementsData, refetch: refetchAnnouncements } = useQuery<{ success: boolean; announcements: DbAnnouncement[] }>({
+    queryKey: ['adminAnnouncements'],
+    queryFn: async () => (await api.get('/announcements')).data,
+  });
+
+  // ==========================================
+  // ANNOUNCEMENT ACTIONS
+  // ==========================================
+
+  const handleCreateAnnouncementSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/announcements', newAnnouncement);
+      showToast('Announcement posted successfully');
+      setNewAnnouncement({ title: '', message: '', priority: 'medium' });
+      setIsCreateAnnouncementOpen(false);
+      refetchAnnouncements();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to post announcement', 'error');
+    }
+  };
+
+  const handleDeleteAnnouncement = async (annId: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete announcement "${title}"?`)) return;
+    try {
+      await api.delete(`/announcements/${annId}`);
+      showToast('Announcement deleted successfully');
+      refetchAnnouncements();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to delete announcement', 'error');
+    }
+  };
 
   // ==========================================
   // USER DIRECTORY ACTIONS
@@ -485,6 +539,9 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
           <Button variant="outline" size="sm" onClick={() => setIsCreateUserOpen(true)}>
             Onboard User
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsCreateAnnouncementOpen(true)}>
+            Add Ann
+          </Button>
           <Button size="sm" onClick={() => setIsCreateClassroomOpen(true)}>
             New Classroom
           </Button>
@@ -508,11 +565,11 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
               { title: 'Active Accounts', value: dashData.stats.activeUsers, icon: Check, color: 'text-emerald bg-emerald-50 border-emerald-100' },
               { title: 'Inactive Accounts', value: dashData.stats.inactiveUsers, icon: X, color: 'text-rose bg-rose-50 border-rose-100' },
             ].map((c) => (
-              <Card key={c.title} className="bg-white border border-border">
+              <Card key={c.title} className="bg-white dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
                 <CardContent className="p-5 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">{c.title}</p>
-                    <h3 className="text-xl font-bold mt-1 text-text-primary">{c.value}</h3>
+                    <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">{c.title}</p>
+                    <h3 className="text-xl font-bold mt-1 text-text-primary dark:text-gray-100">{c.value}</h3>
                   </div>
                   <div className={`p-2 border rounded-md ${c.color}`}>
                     <c.icon className="h-4.5 w-4.5" />
@@ -524,32 +581,32 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* System Audit Activity Logs Panel */}
-            <Card className="lg:col-span-2 bg-white">
+            <Card className="lg:col-span-2 bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4.5 w-4.5 text-text-secondary" />
+                  <Clock className="h-4.5 w-4.5 text-text-secondary dark:text-slate-400" />
                   <CardTitle>System Activity Logs</CardTitle>
                 </div>
                 <CardDescription>Live database audit tracking administrative actions.</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
+              <CardContent className="divide-y divide-border dark:divide-dark-border">
                 {dashData.recentActivity.length === 0 ? (
-                  <div className="py-8 text-center text-xs text-text-secondary italic">No logged activity events yet.</div>
+                  <div className="py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">No logged activity events yet.</div>
                 ) : (
                   dashData.recentActivity.map((act) => (
                     <div key={act.id} className="py-3 flex items-start gap-4 first:pt-0 last:pb-0">
-                      <div className="p-1.5 bg-slate-50 border border-border rounded text-text-secondary mt-0.5 shrink-0">
+                      <div className="p-1.5 bg-slate-50 dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded text-text-secondary dark:text-slate-400 mt-0.5 shrink-0">
                         <Sparkles className="h-3.5 w-3.5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline gap-2">
-                          <h4 className="text-xs font-bold text-text-primary">{act.action}</h4>
-                          <span className="text-[10px] text-text-secondary">
+                          <h4 className="text-xs font-bold text-text-primary dark:text-gray-200">{act.action}</h4>
+                          <span className="text-[10px] text-text-secondary dark:text-slate-400">
                             {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-xs text-text-secondary mt-0.5">{act.details}</p>
-                        <div className="flex items-center gap-3 mt-1 text-[9px] text-text-secondary font-semibold">
+                        <p className="text-xs text-text-secondary dark:text-slate-400 mt-0.5">{act.details}</p>
+                        <div className="flex items-center gap-3 mt-1 text-[9px] text-text-secondary dark:text-slate-500 font-semibold">
                           <span>Operator: {act.user}</span>
                           <span>•</span>
                           <span>Timestamp: {new Date(act.timestamp).toLocaleDateString()}</span>
@@ -998,6 +1055,70 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ==========================================
+          7. ANNOUNCEMENTS LEDGER VIEW (Admin Panel)
+          ========================================== */}
+      {activeTab === 'announcements' && dbAnnouncementsData && (
+        <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+          <CardHeader className="border-b border-border dark:border-dark-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle>Institutional Announcements</CardTitle>
+              <CardDescription>Publish updates, system logs, or alerts to the faculty board network.</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setIsCreateAnnouncementOpen(true)}>
+              Publish Announcement
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-dark-surface border-b border-border dark:border-dark-border text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none">
+                    <th className="py-3 px-4">Title</th>
+                    <th className="py-3 px-4">Message</th>
+                    <th className="py-3 px-4">Priority</th>
+                    <th className="py-3 px-4">Date Posted</th>
+                    <th className="py-3 px-4">Author</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border dark:divide-dark-border">
+                  {dbAnnouncementsData.announcements.map((ann) => (
+                    <tr key={ann._id} className="hover:bg-slate-50/50 dark:hover:bg-dark-hover/30 border-b border-border/40 dark:border-dark-border/40">
+                      <td className="py-3.5 px-4 font-bold text-text-primary dark:text-gray-200">{ann.title}</td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400 truncate max-w-xs">{ann.message}</td>
+                      <td className="py-3.5 px-4">
+                        <Badge variant={ann.priority === 'high' ? 'danger' : ann.priority === 'medium' ? 'warning' : 'secondary'} className="text-[10px] font-bold select-none uppercase">
+                          {ann.priority}
+                        </Badge>
+                      </td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400">{new Date(ann.publishDate).toLocaleDateString()}</td>
+                      <td className="py-3.5 px-4 text-text-secondary dark:text-slate-400">{ann.faculty?.name || 'Admin'}</td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => handleDeleteAnnouncement(ann._id, ann.title)}
+                          className="p-1.5 hover:bg-danger-light dark:hover:bg-red-950/20 border border-border dark:border-dark-border hover:border-danger/15 rounded text-text-secondary dark:text-slate-400 hover:text-danger-text"
+                          title="Delete Announcement"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {dbAnnouncementsData.announcements.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-text-secondary dark:text-slate-400 italic">
+                        No announcements posted yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1663,6 +1784,63 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
                   </Button>
                   <Button type="submit" size="sm">
                     Submit Subject
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* I. CREATE ANNOUNCEMENT MODAL */}
+      {isCreateAnnouncementOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+          <Card className="w-full max-w-md bg-white dark:bg-dark-card border border-border dark:border-dark-border shadow-dropdown p-2 animate-fadeIn relative">
+            <button onClick={() => setIsCreateAnnouncementOpen(false)} className="absolute right-4 top-4 text-text-secondary dark:text-slate-400 hover:text-text-primary dark:hover:text-amber-500">
+              <X className="h-4.5 w-4.5" />
+            </button>
+            <CardHeader className="pb-3 border-b border-border dark:border-dark-border">
+              <CardTitle>Create Faculty Announcement</CardTitle>
+              <CardDescription>Post a board notice visible only to all Faculty members.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <form onSubmit={handleCreateAnnouncementSubmit} className="space-y-4">
+                <Input
+                  id="ann-title"
+                  type="text"
+                  label="Announcement Title"
+                  placeholder="e.g. End of Semester Exam Syllabus"
+                  required
+                  value={newAnnouncement.title}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                />
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase select-none font-semibold">Notice Message</label>
+                  <textarea
+                    required
+                    value={newAnnouncement.message}
+                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
+                    rows={4}
+                    className="w-full p-3 text-xs bg-slate-50 border border-border rounded-md focus:outline-none focus:bg-white focus:border-primary dark:bg-dark-surface dark:border-dark-border dark:text-gray-150 dark:focus:bg-dark-card"
+                    placeholder="Enter the notice content..."
+                  />
+                </div>
+                <Select
+                  label="Priority Level"
+                  options={[
+                    { value: 'low', label: 'Low Priority' },
+                    { value: 'medium', label: 'Medium Priority' },
+                    { value: 'high', label: 'High Priority' }
+                  ]}
+                  value={newAnnouncement.priority}
+                  onChange={(e) => setNewAnnouncement({ ...newAnnouncement, priority: e.target.value })}
+                />
+                <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateAnnouncementOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm">
+                    Post Announcement
                   </Button>
                 </div>
               </form>

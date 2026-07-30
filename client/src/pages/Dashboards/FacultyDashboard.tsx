@@ -1247,9 +1247,18 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* Global Study Materials view */}
       {view === 'materials' && (
         <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-          <CardHeader>
-            <CardTitle>Study Materials Library</CardTitle>
-            <CardDescription>Shared syllabus handouts and courses documents.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 pb-4">
+            <div>
+              <CardTitle>Study Materials Library</CardTitle>
+              <CardDescription>Shared syllabus handouts and courses documents.</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => {
+              setSelectedClassroomId(null);
+              setMaterialForm({ title: '', description: '', subject: subjectsData?.subjects[0]?._id || '', classroom: facultyClassrooms[0]?._id || '', category: 'PDF', fileUrl: '' });
+              setIsCreateMaterialOpen(true);
+            }}>
+              Upload Material
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -1292,9 +1301,18 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* Global Question Papers view */}
       {view === 'question-papers' && (
         <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-          <CardHeader>
-            <CardTitle>Exam Question Booklet ledger</CardTitle>
-            <CardDescription>Archived previous papers, internal evaluations, and solutions.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 pb-4">
+            <div>
+              <CardTitle>Exam Question Booklet ledger</CardTitle>
+              <CardDescription>Archived previous papers, internal evaluations, and solutions.</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => {
+              setSelectedClassroomId(null);
+              setPaperForm({ title: '', fileUrl: '', department: '', semester: '', subject: subjectsData?.subjects[0]?._id || '', academicYear: '', category: 'Previous Year Paper' });
+              setIsCreatePaperOpen(true);
+            }}>
+              Upload Booklet
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -1335,9 +1353,18 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
       {/* Global Announcements view */}
       {view === 'announcements' && (
         <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-          <CardHeader>
-            <CardTitle>Bulletins notices</CardTitle>
-            <CardDescription>Important notifications posted on the Notice Board.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border dark:border-dark-border/40 pb-4">
+            <div>
+              <CardTitle>Bulletins notices</CardTitle>
+              <CardDescription>Important notifications posted on the Notice Board.</CardDescription>
+            </div>
+            <Button size="sm" onClick={() => {
+              setSelectedClassroomId(null);
+              setAnnouncementForm({ title: '', message: '', priority: 'medium', targetClassroom: '' });
+              setIsCreateAnnouncementOpen(true);
+            }}>
+              Publish Notice
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">

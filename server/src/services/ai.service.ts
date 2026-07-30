@@ -35,7 +35,7 @@ export const callAI = async (messages: OpenRouterMessage[]): Promise<string> => 
         body: JSON.stringify({
             model: MODEL,
             messages,
-            max_tokens: 2048,
+            max_tokens: 512,
             temperature: 0.7,
         }),
     });

@@ -65,6 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed })
         { name: 'Departments', path: '/admin/departments', icon: Network },
         { name: 'Classrooms', path: '/admin/classrooms', icon: BookOpen },
         { name: 'Subjects', path: '/admin/subjects', icon: BookOpen },
+        { name: 'Announcements', path: '/admin/announcements', icon: Megaphone },
         { name: 'AI Assistant', path: '/admin/ai', icon: Sparkles },
       ];
     }

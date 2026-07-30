@@ -45,6 +45,7 @@ function App() {
                   <Route path="/admin/classrooms" element={<AdminDashboard view="classrooms" />} />
                   <Route path="/admin/departments" element={<AdminDashboard view="departments" />} />
                   <Route path="/admin/subjects" element={<AdminDashboard view="subjects" />} />
+                  <Route path="/admin/announcements" element={<AdminDashboard view="announcements" />} />
                   <Route path="/admin/ai" element={<AIWorkspace />} />
                   <Route path="/admin/profile" element={<ProfilePage />} />
                   <Route path="/admin/settings" element={<SettingsPage />} />
