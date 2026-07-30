@@ -1,4 +1,4 @@
-# 🎓 Career Hub
+<img width="1907" height="968" alt="Screenshot 2026-07-30 223043" src="https://github.com/user-attachments/assets/9539a2ee-bb04-46e0-95b4-17212ef7698f" /># 🎓 Career Hub
 
 <div align="center">
 
@@ -333,38 +333,42 @@ OPENROUTER_API_KEY=YOUR_API_KEY
 # 📸 Screenshots
 
 ### Login
+<img width="1907" height="968" alt="image" src="https://github.com/user-attachments/assets/3988a1f6-c77c-4121-9f0b-8461b286416f" />
 
-(Add Screenshot)
 
 ---
 
 ### Admin Dashboard
 
-(Add Screenshot)
+<img width="1899" height="978" alt="image" src="https://github.com/user-attachments/assets/0ea977ac-5210-41bb-a837-173848e5e14d" />
+
 
 ---
 
 ### Faculty Dashboard
 
-(Add Screenshot)
+<img width="1903" height="970" alt="image" src="https://github.com/user-attachments/assets/8ad83dfb-e455-4368-9390-4fcf5e149a22" />
+
 
 ---
 
 ### Student Dashboard
 
-(Add Screenshot)
+<img width="1911" height="969" alt="image" src="https://github.com/user-attachments/assets/964ffadc-ce04-4cbd-8397-1a9efcc67975" />
 
 ---
 
 ### AI Assistant
 
-(Add Screenshot)
+<img width="1591" height="895" alt="image" src="https://github.com/user-attachments/assets/612b6470-442e-4328-835f-663b9940ed4c" />
+
 
 ---
 
 ### Document Library
 
-(Add Screenshot)
+<img width="408" height="799" alt="image" src="https://github.com/user-attachments/assets/9ecb4bbc-d4ac-4baf-a6da-763866d4947b" />
+
 
 ---
 
