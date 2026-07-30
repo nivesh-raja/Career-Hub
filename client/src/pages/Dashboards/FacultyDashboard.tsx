@@ -1524,7 +1524,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                   value={profileForm.bio}
                   onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                   placeholder="A short biography description..."
-                  className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-24"
+                  className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white dark:bg-dark-surface text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary dark:focus:bg-dark-card h-24"
                 />
               </div>
               <div className="pt-4 border-t border-border dark:border-dark-border mt-6">
@@ -1570,7 +1570,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     value={assignmentForm.description}
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
                     placeholder="Homework guidelines description..."
-                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-20"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white dark:bg-dark-surface text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary dark:focus:bg-dark-card h-20"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -1675,7 +1675,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     value={gradeFeedback}
                     onChange={(e) => setGradeFeedback(e.target.value)}
                     placeholder="Provide constructive assessment comments..."
-                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-20"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white dark:bg-dark-surface text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary dark:focus:bg-dark-card h-20"
                   />
                 </div>
                 <div className="flex justify-end gap-2 pt-4 border-t border-border dark:border-dark-border mt-6">
@@ -1878,7 +1878,7 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
                     value={announcementForm.message}
                     onChange={(e) => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
                     placeholder="Enter bulletin text alert..."
-                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary h-24"
+                    className="p-3 text-sm border border-border dark:border-dark-border rounded bg-white dark:bg-dark-surface text-text-primary dark:text-gray-200 focus:outline-none focus:border-primary dark:focus:bg-dark-card h-24"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
