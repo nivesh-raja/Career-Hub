@@ -1,4 +1,5 @@
-<img width="1907" height="968" alt="Screenshot 2026-07-30 223043" src="https://github.com/user-attachments/assets/9539a2ee-bb04-46e0-95b4-17212ef7698f" /># 🎓 Career Hub
+<img width="1905" height="969" alt="image" src="https://github.com/user-attachments/assets/703e17cb-e19d-4a19-bd83-5123c7c5e481" />
+# 🎓 Career Hub
 
 <div align="center">
 
