@@ -13,6 +13,7 @@ import { StudentDashboard } from './pages/Dashboards/StudentDashboard.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { SettingsPage } from './pages/SettingsPage.js';
 import { AIWorkspace } from './pages/AIWorkspace.js';
+import { AnalyticsDashboardPage } from './pages/AnalyticsDashboardPage.js';
 import { NotFoundPage } from './pages/NotFoundPage.js';
 
 const queryClient = new QueryClient({
@@ -49,6 +50,7 @@ function App() {
                   <Route path="/admin/ai" element={<AIWorkspace />} />
                   <Route path="/admin/profile" element={<ProfilePage />} />
                   <Route path="/admin/settings" element={<SettingsPage />} />
+                  <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
                   {/* Fallbacks */}
                   <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
                 </Route>
@@ -66,6 +68,7 @@ function App() {
                   <Route path="/faculty/ai" element={<AIWorkspace />} />
                   <Route path="/faculty/profile" element={<ProfilePage />} />
                   <Route path="/faculty/settings" element={<SettingsPage />} />
+                  <Route path="/faculty/analytics" element={<AnalyticsDashboardPage />} />
                   {/* Fallbacks */}
                   <Route path="/faculty/*" element={<Navigate to="/faculty/dashboard" replace />} />
                 </Route>
@@ -83,6 +86,7 @@ function App() {
                   <Route path="/student/ai" element={<AIWorkspace />} />
                   <Route path="/student/profile" element={<ProfilePage />} />
                   <Route path="/student/settings" element={<SettingsPage />} />
+                  <Route path="/student/analytics" element={<AnalyticsDashboardPage />} />
                   {/* Fallbacks */}
                   <Route path="/student/*" element={<Navigate to="/student/dashboard" replace />} />
                 </Route>

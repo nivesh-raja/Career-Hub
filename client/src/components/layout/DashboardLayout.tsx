@@ -20,6 +20,7 @@ function getBreadcrumbs(pathname: string): { label: string }[] {
     faculty: 'Faculty',
     student: 'Student',
     dashboard: 'Dashboard',
+    analytics: 'Performance Analytics',
     users: 'Users',
     roles: 'Roles',
     classrooms: 'Classrooms',

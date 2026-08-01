@@ -20,6 +20,7 @@ import {
   Calendar,
   Sparkles,
   ChevronDown,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '../../utils/cn.js';
 import { Avatar } from '../ui/Avatar.js';
@@ -53,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed })
 
   const coreItems = [
     { name: 'Dashboard', path: `/${user?.role}/dashboard`, icon: LayoutDashboard },
+    { name: 'Analytics', path: `/${user?.role}/analytics`, icon: BarChart3 },
     { name: 'Profile', path: `/${user?.role}/profile`, icon: User },
     { name: 'Settings', path: `/${user?.role}/settings`, icon: Settings },
   ];
