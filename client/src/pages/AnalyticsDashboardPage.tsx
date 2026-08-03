@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -28,6 +28,77 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, PieChart, Pie, Cell
 } from 'recharts';
+
+// Reusable Count-up animation component using requestAnimationFrame & IntersectionObserver
+const AnimatedCounter: React.FC<{
+    value: number;
+    duration?: number;
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+}> = ({ value, duration = 1000, prefix = '', suffix = '', decimals = 0 }) => {
+    const [count, setCount] = useState<number>(0);
+    const [hasAnimated, setHasAnimated] = useState<boolean>(false);
+    const elementRef = useRef<HTMLSpanElement>(null);
+    const valueRef = useRef<number>(value);
+
+    // Keep valueRef updated
+    useEffect(() => {
+        valueRef.current = value;
+        if (hasAnimated) {
+            setCount(value);
+        }
+    }, [value, hasAnimated]);
+
+    useEffect(() => {
+        const targetValue = valueRef.current;
+        if (targetValue === 0) {
+            setCount(0);
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && !hasAnimated) {
+                    setHasAnimated(true);
+                    let startTimestamp: number | null = null;
+                    const step = (timestamp: number) => {
+                        if (!startTimestamp) startTimestamp = timestamp;
+                        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                        const current = progress * targetValue;
+                        setCount(current);
+                        if (progress < 1) {
+                            window.requestAnimationFrame(step);
+                        } else {
+                            setCount(targetValue);
+                        }
+                    };
+                    window.requestAnimationFrame(step);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const currentElement = elementRef.current;
+        if (currentElement) {
+            observer.observe(currentElement);
+        }
+
+        return () => {
+            if (currentElement) {
+                observer.unobserve(currentElement);
+            }
+        };
+    }, [duration, hasAnimated]);
+
+    return (
+        <span ref={elementRef}>
+            {prefix}
+            {count.toFixed(decimals)}
+            {suffix}
+        </span>
+    );
+};
 
 export const AnalyticsDashboardPage: React.FC = () => {
     const { user } = useAuth();
@@ -65,6 +136,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
     const {
         data: roleAnalytics,
         isLoading: isRoleLoading,
+        isFetching: isRoleFetching,
         error: roleError,
         refetch: refetchRole
     } = useQuery({
@@ -83,6 +155,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
     const {
         data: aiAnalytics,
         isLoading: isAiLoading,
+        isFetching: isAiFetching,
         refetch: refetchAi
     } = useQuery({
         queryKey: ['analytics-ai', timeframe],
@@ -96,6 +169,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
     const {
         data: insightsData,
         isLoading: isInsightsLoading,
+        isFetching: isInsightsFetching,
         refetch: refetchInsights
     } = useQuery({
         queryKey: ['analytics-overview', timeframe],
@@ -105,29 +179,38 @@ export const AnalyticsDashboardPage: React.FC = () => {
         }
     });
 
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+    useEffect(() => {
+        if (roleAnalytics || aiAnalytics || insightsData) {
+            setLastUpdated(new Date());
+        }
+    }, [roleAnalytics, aiAnalytics, insightsData]);
+
     const handleRefresh = () => {
         refetchRole();
         refetchAi();
         refetchInsights();
     };
 
-
-
     // Color scheme for PIE charts
     const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'];
 
-    const isLoading = isRoleLoading || isAiLoading || isInsightsLoading;
+    const isLoading = isRoleLoading || isAiLoading || isInsightsLoading || isRoleFetching || isAiFetching || isInsightsFetching;
 
     return (
         <div className="space-y-6">
             {/* Header Banner */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-primary-900/40 via-purple-900/20 to-transparent p-6 rounded-2xl border border-primary-500/10 dark:border-primary-500/10 backdrop-blur-md">
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <span className="bg-primary-500/10 text-primary-400 dark:text-primary-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-primary-500/20 flex items-center gap-1.5 animate-pulse">
                             <Activity className="h-3 w-3" /> Live Metrics
                         </span>
                         <span className="text-secondary-400 dark:text-secondary-500 text-xs">• Dynamic Aggregation</span>
+                        <span className="text-slate-400 dark:text-secondary-500 text-xs font-mono flex items-center gap-1 ml-1">
+                            <Clock className="h-3.5 w-3.5" /> Last Updated: {lastUpdated.toLocaleTimeString()}
+                        </span>
                     </div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-secondary-100 to-secondary-400 bg-clip-text text-transparent">
                         Performance Analytics Hub
@@ -313,13 +396,13 @@ export const AnalyticsDashboardPage: React.FC = () => {
                        ======================================================== */
                     <div className="space-y-6">
                         {/* KPI Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <Card className="glass-card hover-glow transition-all">
                                 <CardContent className="p-6 flex items-center justify-between">
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Academic Progress</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.academicProgress}%
+                                            <AnimatedCounter value={roleAnalytics?.academicProgress || 0} suffix="%" />
                                         </h3>
                                         <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2">
                                             <div
@@ -339,7 +422,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Assignments Completed</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.assignmentsCompleted}
+                                            <AnimatedCounter value={roleAnalytics?.assignmentsCompleted || 0} />
                                         </h3>
                                         <p className="text-xs text-emerald-400 flex items-center gap-1 mt-1">
                                             <CheckCircle className="h-3 w-3" /> {roleAnalytics?.assignmentsPending} pending assignments
@@ -356,7 +439,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">AI Chats & Queries</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.aiChatsUsed}
+                                            <AnimatedCounter value={roleAnalytics?.aiChatsUsed || 0} />
                                         </h3>
                                         <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
                                             Using RAG document index
@@ -373,7 +456,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Learning Consistency</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.learningConsistencyScore}%
+                                            <AnimatedCounter value={roleAnalytics?.learningConsistencyScore || 0} suffix="%" />
                                         </h3>
                                         <p className="text-xs text-purple-400 mt-1">
                                             Streak consistency index
@@ -381,6 +464,47 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     </div>
                                     <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl">
                                         <Award className="h-6 w-6" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card hover-glow transition-all">
+                                <CardContent className="p-6 flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">AI Study Plans</p>
+                                        <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
+                                            <AnimatedCounter value={roleAnalytics?.studyPlannerCount || 0} />
+                                        </h3>
+                                        <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
+                                            Active generated study plans
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                                        <Sparkles className="h-6 w-6" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card hover-glow transition-all">
+                                <CardContent className="p-6 flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Uploaded Study Materials</p>
+                                        <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
+                                            <AnimatedCounter value={roleAnalytics?.uploadedStudyMaterials || 0} />
+                                        </h3>
+                                        <div className="text-[10px] text-text-secondary dark:text-secondary-400 mt-1 space-y-0.5">
+                                            {roleAnalytics?.lastStudyMaterialUpload ? (
+                                                <>
+                                                    <span className="block truncate max-w-[180px]">Last: {new Date(roleAnalytics.lastStudyMaterialUpload).toLocaleDateString()}</span>
+                                                    <span className="block truncate max-w-[180px]">Subject: {roleAnalytics.recentStudyMaterialSubject || 'N/A'}</span>
+                                                </>
+                                            ) : (
+                                                <span className="block">No uploaded materials yet</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                                        <BookOpen className="h-6 w-6" />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -492,28 +616,30 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <CardDescription className="text-xs">Calendar tracking of study interactions per day</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-10 gap-2 justify-items-center py-2">
-                                        {roleAnalytics?.monthlyActivityHeatmap?.map((day: any) => {
-                                            const getHeatColor = (count: number) => {
-                                                if (count === 0) return 'bg-slate-100 dark:bg-dark-sidebar border-border';
-                                                if (count < 3) return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/20';
-                                                if (count < 6) return 'bg-indigo-500/40 text-indigo-300 border-indigo-500/30';
-                                                return 'bg-indigo-500 text-white border-indigo-500';
-                                            };
+                                    <div className="overflow-x-auto w-full">
+                                        <div className="grid grid-cols-10 gap-2 min-w-[340px] justify-items-center py-2">
+                                            {roleAnalytics?.monthlyActivityHeatmap?.map((day: any) => {
+                                                const getHeatColor = (count: number) => {
+                                                    if (count === 0) return 'bg-slate-100 dark:bg-dark-sidebar border-border';
+                                                    if (count < 3) return 'bg-indigo-500/20 text-indigo-400 border-indigo-500/20';
+                                                    if (count < 6) return 'bg-indigo-500/40 text-indigo-300 border-indigo-500/30';
+                                                    return 'bg-indigo-500 text-white border-indigo-500';
+                                                };
 
-                                            return (
-                                                <div
-                                                    key={day.date}
-                                                    className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center text-xs font-semibold border ${getHeatColor(
-                                                        day.count
-                                                    )} transition-all transform hover:scale-105 pointer-events-auto`}
-                                                    title={`${day.date}: ${day.count} activities`}
-                                                >
-                                                    <span>{day.date.split('-')[2]}</span>
-                                                    {day.count > 0 && <span className="text-[7px] leading-3 block opacity-80">{day.count}x</span>}
-                                                </div>
-                                            );
-                                        })}
+                                                return (
+                                                    <div
+                                                        key={day.date}
+                                                        className={`w-9 h-9 rounded-lg flex flex-col items-center justify-center text-xs font-semibold border ${getHeatColor(
+                                                            day.count
+                                                        )} transition-all transform hover:scale-105 pointer-events-auto`}
+                                                        title={`${day.date}: ${day.count} activities`}
+                                                    >
+                                                        <span>{day.date.split('-')[2]}</span>
+                                                        {day.count > 0 && <span className="text-[7px] leading-3 block opacity-80">{day.count}x</span>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                     <div className="flex justify-end gap-3 text-[10px] text-text-secondary dark:text-secondary-400 mt-4 px-2">
                                         <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-slate-100 dark:bg-dark-sidebar border border-border rounded" /> 0 activity</span>
@@ -537,7 +663,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Active Students</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.totalStudents}
+                                            <AnimatedCounter value={roleAnalytics?.totalStudents || 0} />
                                         </h3>
                                         <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
                                             Taught across {roleAnalytics?.totalClassrooms} classrooms
@@ -554,7 +680,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Assignments Created</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.assignmentsCreated}
+                                            <AnimatedCounter value={roleAnalytics?.assignmentsCreated || 0} />
                                         </h3>
                                         <p className="text-xs text-emerald-400 mt-1">
                                             {roleAnalytics?.assignmentsPublished} published to classrooms
@@ -571,7 +697,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Study Materials Uploaded</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.studyMaterialsUploaded}
+                                            <AnimatedCounter value={roleAnalytics?.studyMaterialsUploaded || 0} />
                                         </h3>
                                         <p className="text-xs mt-1 text-primary-400">
                                             {roleAnalytics?.questionPapersUploaded} Question papers uploaded
@@ -588,7 +714,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Average Student Progress</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.averageAssignmentCompletion}%
+                                            <AnimatedCounter value={roleAnalytics?.averageAssignmentCompletion || 0} suffix="%" />
                                         </h3>
                                         <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2">
                                             <div
@@ -597,8 +723,8 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                             />
                                         </div>
                                     </div>
-                                    <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl">
-                                        <Award className="h-6 w-6" />
+                                    <div className="p-3 bg-fuchsia-500/10 text-fuchsia-400 rounded-xl">
+                                        <TrendingUp className="h-6 w-6" />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -760,7 +886,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">System Users</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.totalUsers}
+                                            <AnimatedCounter value={roleAnalytics?.totalUsers || 0} />
                                         </h3>
                                         <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
                                             {roleAnalytics?.students} Students | {roleAnalytics?.faculty} Faculty
@@ -777,7 +903,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">AI Tokens Storage</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.storageUsage}
+                                            <AnimatedCounter value={parseFloat(roleAnalytics?.storageUsage || '0')} decimals={2} suffix=" MB" />
                                         </h3>
                                         <p className="text-xs text-emerald-400 mt-1">
                                             {roleAnalytics?.documentsUploaded} processed files (RAG)
@@ -794,7 +920,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Average AI Latency</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.averageAIResponseTime}
+                                            <AnimatedCounter value={parseFloat(roleAnalytics?.averageAIResponseTime || '0')} decimals={2} suffix="s" />
                                         </h3>
                                         <p className="text-xs mt-1 text-rose-400">
                                             LLM pipeline health check normal
@@ -811,7 +937,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Academic Components</p>
                                         <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                            {roleAnalytics?.classrooms}
+                                            <AnimatedCounter value={roleAnalytics?.classrooms || 0} />
                                         </h3>
                                         <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
                                             {roleAnalytics?.departments} Depts | {roleAnalytics?.subjects} Subjects
@@ -957,10 +1083,10 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                 <div className="space-y-1">
                                     <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">AI Queries Total</p>
                                     <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                        {aiAnalytics?.totalAIRequests}
+                                        <AnimatedCounter value={aiAnalytics?.totalAIRequests || 0} />
                                     </h3>
                                     <p className="text-xs text-text-secondary dark:text-secondary-400 mt-1">
-                                        {aiAnalytics?.todayAIRequests} chats generated today
+                                        <AnimatedCounter value={aiAnalytics?.todayAIRequests || 0} /> chats generated today
                                     </p>
                                 </div>
                                 <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
@@ -974,7 +1100,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                 <div className="space-y-1">
                                     <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">LLM Response Latency</p>
                                     <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                        {aiAnalytics?.averageResponseTime}
+                                        <AnimatedCounter value={parseFloat(aiAnalytics?.averageResponseTime || '0')} decimals={2} suffix="s" />
                                     </h3>
                                     <p className="text-xs text-emerald-400 mt-1">
                                         Optimal response time
@@ -991,7 +1117,7 @@ export const AnalyticsDashboardPage: React.FC = () => {
                                 <div className="space-y-1">
                                     <p className="text-xs font-semibold text-text-secondary dark:text-secondary-500">Avg Tokens/Request</p>
                                     <h3 className="text-3xl font-bold font-display text-text-primary dark:text-secondary-100">
-                                        {aiAnalytics?.averageTokensUsed}
+                                        <AnimatedCounter value={aiAnalytics?.averageTokensUsed || 0} />
                                     </h3>
                                     <p className="text-xs text-purple-400 mt-1">
                                         ~{(aiAnalytics?.averageTokensUsed * 0.75).toFixed(0)} words generated

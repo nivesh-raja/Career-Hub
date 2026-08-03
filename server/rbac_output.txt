@@ -1,0 +1,29 @@
+====================================================
+       STARTING RBAC E2E SUITE STRESS TEST          
+====================================================
+
+✓ Connected to MongoDB.
+✓ Found users for roles: Student (6a493a3400a31466d1761949), Faculty (6a493a3300a31466d1761947), Admin (6a493a3300a31466d1761945)
+✓ Signed test JWT tokens for all roles.
+
+--- [Test 1] Verifying RBAC on Endpoints ---
+PASS: Student blocked from /question-paper (403)
+PASS: Student blocked from /notice-report (403)
+PASS: Faculty blocked from /notice-report (403)
+FAIL: Admin can access /question-paper (201)
+
+--- [Test 2] Faculty/Admin specific content generation ---
+adminQPaperRes data: {"success":false,"message":"HTTP 402: {\"error\":{\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 2048 tokens, but can only afford 2015. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\",\"code\":402,\"metadata\":{\"provider_name\":null,\"previous_errors\":[{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 2048 tokens, but can only afford 2015. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 2048 tokens, but can only afford 2015. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 2048 tokens, but can only afford 2015. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account\"}]}},\"user_id\":\"user_3G37N9z4NMko7kGriX32o2Pnx7N\"}"}
+
+--- [Test 3] Intent classification routing based on roles ---
+Test execution failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at async authFetch (R:\placement\Career Hub\server\run-rbac-e2e-tests.ts:48:21)
+    at async runTests (R:\placement\Career Hub\server\run-rbac-e2e-tests.ts:89:28) {
+  [cause]: Error: read ECONNRESET
+      at TCP.onStreamRead (node:internal/stream_base_commons:216:20) {
+    errno: -4077,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}

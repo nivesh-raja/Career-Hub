@@ -93,12 +93,47 @@ const mapWeeklyActivity = async (userIdFilter: any, timeframeQuery: any) => {
     return daysOfWeek.map((day, idx) => ({ day, sessions: counts[idx] }));
 };
 
+// Helper to count all AI requests dynamically
+const getTotalAIRequestsCount = async (timeQuery: any): Promise<number> => {
+    let total = 0;
+    const modelNames = mongoose.modelNames();
+    for (const name of modelNames) {
+        if (name.startsWith('AI') && name !== 'AIDocument') {
+            try {
+                const model = mongoose.model(name);
+                const count = await model.countDocuments(timeQuery);
+                total += count;
+            } catch (err) {
+                // Ignore errors
+            }
+        }
+    }
+    return total;
+};
+
 // @desc    Get Student Analytics
 // @route   GET /api/analytics/student
 // @access  Private (Student Only)
 export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const studentId = req.user?._id;
+        let studentId = req.user?._id;
+        if (req.params && req.params.id) {
+            const paramId = req.params.id;
+            if (req.user?.role === 'admin') {
+                studentId = new mongoose.Types.ObjectId(paramId);
+            } else if (req.user?.role === 'student' && req.user?._id.toString() === paramId) {
+                studentId = req.user?._id;
+            } else {
+                res.status(403).json({ success: false, message: 'Access denied: Insufficient permissions' });
+                return;
+            }
+        } else {
+            if (req.user?.role !== 'student') {
+                res.status(403).json({ success: false, message: 'Access denied: Student only' });
+                return;
+            }
+        }
+
         const { timeframe, subject: filteredSubject } = req.query as { timeframe?: string; subject?: string };
 
         const studentObj = await User.findById(studentId);
@@ -183,6 +218,18 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
         }
         const studyMaterialsCount = await Material.countDocuments(materialsFilter);
 
+        // Find the last uploaded study material for this student's classroom
+        const lastUploadedMaterial = classroomId 
+            ? await Material.findOne(materialsFilter)
+                .sort({ uploadDate: -1 })
+                .populate('subject', 'name')
+            : null;
+
+        const lastStudyMaterialUpload = lastUploadedMaterial ? lastUploadedMaterial.uploadDate : null;
+        const recentStudyMaterialSubject = lastUploadedMaterial && lastUploadedMaterial.subject
+            ? (lastUploadedMaterial.subject as any).name
+            : null;
+
         // AI analytics
         const docQuery: any = { uploader: studentId, ...timeQuery };
         if (filteredSubject) docQuery.subject = new mongoose.Types.ObjectId(filteredSubject);
@@ -196,6 +243,7 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
         const flashcardCount = await AIFlashcard.countDocuments({ user: studentId, ...timeQuery });
         const quizCount = await AIQuiz.countDocuments({ user: studentId, ...timeQuery });
         const helperUsage = await AIAssignment.countDocuments({ user: studentId, type: 'helper', ...timeQuery });
+        const studyPlannerCount = await AIStudyPlan.countDocuments({ user: studentId, ...timeQuery });
 
         // Weekly Study Activity
         const weeklyStudyActivity = await mapWeeklyActivity(studentId, timeQuery);
@@ -207,6 +255,7 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
             { name: 'Quiz', value: quizCount },
             { name: 'Assignment Helper', value: helperUsage },
             { name: 'RAG Chat', value: aiChatsCount },
+            { name: 'Study Planner', value: studyPlannerCount },
         ];
 
         // Subject Performance (Bar Chart)
@@ -317,12 +366,15 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
                 assignmentsCompleted: completedAssignments,
                 assignmentsPending: pendingAssignments,
                 uploadedStudyMaterials: studyMaterialsCount,
+                lastStudyMaterialUpload,
+                recentStudyMaterialSubject,
                 aiDocumentsUploaded: aiDocumentsCount,
                 aiChatsUsed: aiChatsCount,
                 generatedNotesCount: notesCount,
                 generatedFlashcardsCount: flashcardCount,
                 generatedQuizCount: quizCount,
                 assignmentHelperUsage: helperUsage,
+                studyPlannerCount,
                 weeklyStudyActivity,
                 aiUsagePie,
                 subjectPerformance,
@@ -344,7 +396,23 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
 // @access  Private (Faculty Only)
 export const getFacultyAnalytics = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const facultyId = req.user?._id;
+        let facultyId = req.user?._id;
+        if (req.params && req.params.id) {
+            const paramId = req.params.id;
+            if (req.user?.role === 'admin') {
+                facultyId = new mongoose.Types.ObjectId(paramId);
+            } else if (req.user?.role === 'faculty' && req.user?._id.toString() === paramId) {
+                facultyId = req.user?._id;
+            } else {
+                res.status(403).json({ success: false, message: 'Access denied: Insufficient permissions' });
+                return;
+            }
+        } else {
+            if (req.user?.role !== 'faculty') {
+                res.status(403).json({ success: false, message: 'Access denied: Faculty only' });
+                return;
+            }
+        }
         const { timeframe, classroom: filterClassroom, subject: filterSubject } = req.query as {
             timeframe?: string;
             classroom?: string;
@@ -634,7 +702,7 @@ export const getAdminAnalytics = async (req: AuthenticatedRequest, res: Response
         const aiQuizCount = await AIQuiz.countDocuments(timeQuery);
         const aiDocsCount = await AIDocument.countDocuments({ ...timeQuery });
 
-        const totalAIRequests = aiChatsCount + aiNotesCount + aiCardsCount + aiQuizCount;
+        const totalAIRequests = await getTotalAIRequestsCount(timeQuery);
 
         // Sum storage sizes if provided in AIDocument size (simulated dynamic size)
         const storageSummary = await AIDocument.aggregate([
@@ -724,39 +792,44 @@ export const getAIAnalytics = async (req: AuthenticatedRequest, res: Response): 
         const aiFlashcards = await AIFlashcard.countDocuments(timeQuery);
         const aiQuizzes = await AIQuiz.countDocuments(timeQuery);
         const aiDocs = await AIDocument.countDocuments({ ...timeQuery });
+        const aiStudyPlans = await AIStudyPlan.countDocuments(timeQuery);
+        const aiAssignments = await AIAssignment.countDocuments(timeQuery);
+        const aiLessonPlans = await AILessonPlan.countDocuments(timeQuery);
+        const aiQuestionPapers = await AIQuestionPaper.countDocuments(timeQuery);
+        const aiNotices = await AINotice.countDocuments({ ...timeQuery, type: { $in: ['notice', 'circular'] } });
+        const aiEmails = await AINotice.countDocuments({ ...timeQuery, type: 'email' });
+        const aiReports = await AINotice.countDocuments({ ...timeQuery, type: { $in: ['report_academic', 'report_dept', 'report_sem'] } });
 
-        const totalAIRequests = aiChats + aiNotes + aiFlashcards + aiQuizzes;
+        const totalAIRequests = await getTotalAIRequestsCount(timeQuery);
 
         // Today's AI Requests
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
-        const todayRequests = (await AIChat.countDocuments({ createdAt: { $gte: startOfToday } })) +
-            (await AINotes.countDocuments({ createdAt: { $gte: startOfToday } })) +
-            (await AIQuiz.countDocuments({ createdAt: { $gte: startOfToday } })) +
-            (await AIFlashcard.countDocuments({ createdAt: { $gte: startOfToday } }));
+        const todayRequests = await getTotalAIRequestsCount({ createdAt: { $gte: startOfToday } });
 
         // Weekly AI requests count
         const startOfWeek = new Date();
         startOfWeek.setDate(startOfWeek.getDate() - 7);
-        const weeklyRequests = (await AIChat.countDocuments({ createdAt: { $gte: startOfWeek } })) +
-            (await AINotes.countDocuments({ createdAt: { $gte: startOfWeek } })) +
-            (await AIQuiz.countDocuments({ createdAt: { $gte: startOfWeek } })) +
-            (await AIFlashcard.countDocuments({ createdAt: { $gte: startOfWeek } }));
+        const weeklyRequests = await getTotalAIRequestsCount({ createdAt: { $gte: startOfWeek } });
 
         // Monthly AI requests count
         const startOfMonth = new Date();
         startOfMonth.setDate(startOfMonth.getDate() - 30);
-        const monthlyRequests = (await AIChat.countDocuments({ createdAt: { $gte: startOfMonth } })) +
-            (await AINotes.countDocuments({ createdAt: { $gte: startOfMonth } })) +
-            (await AIQuiz.countDocuments({ createdAt: { $gte: startOfMonth } })) +
-            (await AIFlashcard.countDocuments({ createdAt: { $gte: startOfMonth } }));
+        const monthlyRequests = await getTotalAIRequestsCount({ createdAt: { $gte: startOfMonth } });
 
         // Top AI tools distribution
         const tools = [
             { name: 'RAG Chat AI', count: aiChats },
             { name: 'Study Notes AI', count: aiNotes },
             { name: 'Study Flashcards AI', count: aiFlashcards },
-            { name: 'Interactive Quizzes AI', count: aiQuizzes }
+            { name: 'Interactive Quizzes AI', count: aiQuizzes },
+            { name: 'Study Planner', count: aiStudyPlans },
+            { name: 'Assignment Helper', count: aiAssignments },
+            { name: 'Lesson Planner', count: aiLessonPlans },
+            { name: 'Question Paper Generator', count: aiQuestionPapers },
+            { name: 'Notice Generator', count: aiNotices },
+            { name: 'Email Generator', count: aiEmails },
+            { name: 'Report Generator', count: aiReports }
         ].sort((a, b) => b.count - a.count);
 
         const topUsedAITool = tools[0].name;
@@ -873,11 +946,11 @@ export const getSystemOverviewAndInsights = async (req: AuthenticatedRequest, re
         const { timeframe } = req.query as { timeframe?: string };
         const timeQuery = getTimeframeQuery(timeframe);
 
-        // Calculate dynamic insights based on real database records
         const insights: string[] = [];
 
         // 1. Most active day of week for student submissions
         const submissionDays = await Submission.aggregate([
+            { $match: timeQuery },
             {
                 $project: {
                     dayOfWeek: { $dayOfWeek: '$submissionDate' }
@@ -894,60 +967,118 @@ export const getSystemOverviewAndInsights = async (req: AuthenticatedRequest, re
         ]);
 
         const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        if (submissionDays.length > 0) {
+        if (submissionDays.length > 0 && submissionDays[0]._id) {
             const activeDay = dayMap[submissionDays[0]._id - 1];
-            insights.push(`Students are most active on ${activeDay || 'Tuesdays'}.`);
+            insights.push(`Students are most active on ${activeDay} based on submissions.`);
         } else {
-            insights.push('Students are most active on Tuesdays.');
+            insights.push('No student submissions logged during this timeframe.');
         }
 
-        // 2. Subject with highest AI usage
-        const topAISubject = await AIChat.aggregate([
-            { $match: { subject: { $exists: true } } },
-            { $group: { _id: '$subject', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 1 }
-        ]);
+        // 2. Highest assignment completion department & Least active department
+        const allDepts = await Department.find({});
+        const deptActivity: { name: string; count: number }[] = [];
+        for (const dept of allDepts) {
+            const studentIds = (await User.find({ department: dept._id, role: 'student' }).select('_id')).map(u => u._id);
+            const count = await Submission.countDocuments({
+                student: { $in: studentIds },
+                status: { $in: ['Submitted', 'Reviewed'] }
+            });
+            deptActivity.push({ name: dept.name, count });
+        }
 
-        if (topAISubject.length > 0) {
-            const sub = await Subject.findById(topAISubject[0]._id);
-            insights.push(`${sub ? sub.name : 'Computer Networks'} has the highest AI usage.`);
+        if (deptActivity.length > 0) {
+            deptActivity.sort((a, b) => b.count - a.count);
+            insights.push(`${deptActivity[0].name} department has the highest assignment completion rate with ${deptActivity[0].count} submissions.`);
+            
+            // Least active department
+            const leastActive = deptActivity[deptActivity.length - 1];
+            insights.push(`${leastActive.name} department is the least active with ${leastActive.count} submissions.`);
         } else {
-            insights.push('Computer Networks has the highest AI usage.');
+            insights.push('No department activity records available.');
         }
 
-        // 3. Subject with most uploaded documents
-        const topDocSubject = await AIDocument.aggregate([
-            { $match: { subject: { $exists: true } } },
-            { $group: { _id: '$subject', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 1 }
-        ]);
-
-        if (topDocSubject.length > 0) {
-            const sub = await Subject.findById(topDocSubject[0]._id);
-            insights.push(`${sub ? sub.name : 'DSA'} has the most uploaded documents.`);
+        // 3. Most active classroom
+        const allClassrooms = await Classroom.find({});
+        const classroomActivity: { name: string; count: number }[] = [];
+        for (const cls of allClassrooms) {
+            const assIds = (await Assignment.find({ classroom: cls._id }).select('_id')).map(a => a._id);
+            const count = await Submission.countDocuments({
+                assignment: { $in: assIds }
+            });
+            classroomActivity.push({ name: cls.className, count });
+        }
+        if (classroomActivity.length > 0) {
+            classroomActivity.sort((a, b) => b.count - a.count);
+            insights.push(`Classroom ${classroomActivity[0].name} is the most active with ${classroomActivity[0].count} submissions.`);
         } else {
-            insights.push('DSA has the most uploaded documents.');
+            insights.push('No active classroom submissions logged.');
         }
 
-        // 4. Assignments created this week by faculty
-        const startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - 7);
-        const assignmentsThisWeek = await Assignment.countDocuments({ createdAt: { $gte: startOfWeek } });
-        insights.push(`Faculty created ${assignmentsThisWeek || 12} assignments this week.`);
-
-        // 5. Weekly AI usage trend estimation
-        const prevWeek = new Date();
-        prevWeek.setDate(prevWeek.getDate() - 14);
-        const thisWeekAI = await AIChat.countDocuments({ createdAt: { $gte: startOfWeek } });
-        const lastWeekAI = await AIChat.countDocuments({ createdAt: { $gte: prevWeek, $lt: startOfWeek } });
-
-        let trendPercent = 32;
-        if (lastWeekAI > 0) {
-            trendPercent = Math.round(((thisWeekAI - lastWeekAI) / lastWeekAI) * 100);
+        // 4. Most used AI tool
+        const aiTools = [
+            { name: 'AI Chat', count: await AIChat.countDocuments(timeQuery) },
+            { name: 'Notes Generator', count: await AINotes.countDocuments(timeQuery) },
+            { name: 'Flashcards', count: await AIFlashcard.countDocuments(timeQuery) },
+            { name: 'Quiz Generator', count: await AIQuiz.countDocuments(timeQuery) },
+            { name: 'Study Planner', count: await AIStudyPlan.countDocuments(timeQuery) },
+            { name: 'Assignment Helper', count: await AIAssignment.countDocuments(timeQuery) },
+            { name: 'Lesson Planner', count: await AILessonPlan.countDocuments(timeQuery) },
+            { name: 'Question Paper Generator', count: await AIQuestionPaper.countDocuments(timeQuery) },
+            { name: 'Notice Generator', count: await AINotice.countDocuments({ ...timeQuery, type: { $in: ['notice', 'circular'] } }) },
+            { name: 'Email Generator', count: await AINotice.countDocuments({ ...timeQuery, type: 'email' }) },
+            { name: 'Report Generator', count: await AINotice.countDocuments({ ...timeQuery, type: { $in: ['report_academic', 'report_dept', 'report_sem'] } }) }
+        ];
+        aiTools.sort((a, b) => b.count - a.count);
+        if (aiTools.some(t => t.count > 0)) {
+            insights.push(`${aiTools[0].name} is the most utilized AI tool with ${aiTools[0].count} requests.`);
+        } else {
+            insights.push('No AI tools have been requested in the system.');
         }
-        insights.push(`Average AI usage increased ${Math.abs(trendPercent) || 32}%.`);
+
+        // 5. Most uploaded subject
+        const subjectUploads: Record<string, { name: string; count: number }> = {};
+        const materials = await Material.find({}).populate('subject', 'name');
+        materials.forEach(m => {
+            if (m.subject) {
+                const subName = (m.subject as any).name;
+                const subId = String(m.subject._id);
+                if (!subjectUploads[subId]) subjectUploads[subId] = { name: subName, count: 0 };
+                subjectUploads[subId].count++;
+            }
+        });
+        const aiDocs = await AIDocument.find({}).populate('subject', 'name');
+        aiDocs.forEach(d => {
+            if (d.subject) {
+                const subName = (d.subject as any).name;
+                const subId = String(d.subject._id);
+                if (!subjectUploads[subId]) subjectUploads[subId] = { name: subName, count: 0 };
+                subjectUploads[subId].count++;
+            }
+        });
+        const sortedSubjects = Object.values(subjectUploads).sort((a, b) => b.count - a.count);
+        if (sortedSubjects.length > 0) {
+            insights.push(`${sortedSubjects[0].name} has the most uploaded documents with ${sortedSubjects[0].count} materials.`);
+        } else {
+            insights.push('No subject documents have been uploaded yet.');
+        }
+
+        // 6. Highest performing faculty
+        const allFaculty = await User.find({ role: 'faculty' });
+        const facultyPerformance: { name: string; count: number }[] = [];
+        for (const fac of allFaculty) {
+            const assIds = (await Assignment.find({ faculty: fac._id }).select('_id')).map(a => a._id);
+            const count = await Submission.countDocuments({
+                assignment: { $in: assIds },
+                status: 'Reviewed'
+            });
+            facultyPerformance.push({ name: fac.name, count });
+        }
+        if (facultyPerformance.length > 0) {
+            facultyPerformance.sort((a, b) => b.count - a.count);
+            insights.push(`Faculty ${facultyPerformance[0].name} is the highest performing with ${facultyPerformance[0].count} graded submissions.`);
+        } else {
+            insights.push('No faculty assignment reviews recorded.');
+        }
 
         res.status(200).json({
             success: true,
