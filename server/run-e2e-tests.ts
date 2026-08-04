@@ -12,7 +12,11 @@ import DocumentChunk from './src/models/documentChunk.model.js';
 import AIChat from './src/models/aiChat.model.js';
 
 const API_BASE = 'http://localhost:5000/api/ai';
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+if (!process.env.JWT_SECRET) {
+    console.error('❌ JWT_SECRET is not set in environment.');
+    process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 async function runTests() {
     console.log("====================================================");

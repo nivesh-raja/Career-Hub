@@ -12,9 +12,12 @@ server_out.txt
 # Environment variables and secrets
 .env
 .env.*
-**/ .env
 **/.env
 **/.env.*
+
+# Allow .env.example templates (no secrets)
+!.env.example
+!**/.env.example
 
 # IDEs and editors
 .vscode/
