@@ -17,6 +17,7 @@ import announcementRoutes from './routes/announcement.routes.js';
 import timetableRoutes from './routes/timetable.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import intelligenceRoutes from './routes/intelligence.routes.js';
 import { notFound, errorHandler } from './middleware/error.middleware.js';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/intelligence', intelligenceRoutes);
 
 // Base route check
 app.get('/', (req, res) => {

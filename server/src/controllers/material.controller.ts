@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import Material from '../models/material.model.js';
 import Classroom from '../models/classroom.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 export const getMaterials = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -54,6 +55,7 @@ export const createMaterial = async (req: AuthenticatedRequest, res: Response): 
     });
 
     await logActivity(req, req.user?.name || 'Faculty', 'Material Uploaded', title);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: 'faculty', activityType: 'material_upload', module: 'documents', title: `Uploaded Material: ${title}`, description: `Study material published under category "${category}".`, icon: 'book-open', color: 'indigo' });
 
     res.status(201).json({ success: true, material });
   } catch (error: any) {
@@ -131,6 +133,9 @@ export const incrementDownloads = async (req: AuthenticatedRequest, res: Respons
 
     material.downloads = (material.downloads || 0) + 1;
     await material.save();
+    if (req.user) {
+      logTimelineEvent({ userId: req.user._id.toString(), role: req.user.role as any, activityType: 'material_viewed', module: 'documents', title: `Downloaded: ${material.title}`, description: `Study material accessed for review.`, icon: 'download', color: 'cyan' });
+    }
 
     res.status(200).json({ success: true, downloads: material.downloads });
   } catch (error: any) {

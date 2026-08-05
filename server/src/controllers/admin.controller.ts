@@ -8,6 +8,7 @@ import Classroom from '../models/classroom.model.js';
 import Subject from '../models/subject.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 // @desc    Get dashboard stats for Admin
 // @route   GET /api/admin/stats
@@ -124,15 +125,15 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     if (name) user.name = name;
     if (email) user.email = email;
     if (phone !== undefined) user.phone = phone;
-    
+
     if (department !== undefined) {
       user.department = department ? new mongoose.Types.ObjectId(department) : undefined;
     }
-    
+
     if (classroom !== undefined) {
       user.classroom = classroom ? new mongoose.Types.ObjectId(classroom) : undefined;
     }
-    
+
     if (status) {
       user.status = status;
       user.isActive = status === 'Active';
@@ -149,14 +150,14 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     // Synchronize Classroom collections if student's classroom assignment changed
     if (user.role === 'student' && classroom !== undefined) {
       const newClassroomId = classroom ? new mongoose.Types.ObjectId(classroom) : null;
-      
+
       // If student was removed from a classroom
       if (previousClassroomId && String(previousClassroomId) !== String(newClassroomId)) {
         await Classroom.findByIdAndUpdate(previousClassroomId, {
           $pull: { students: user._id }
         });
       }
-      
+
       // If student was added to a new classroom
       if (newClassroomId) {
         await Classroom.findByIdAndUpdate(newClassroomId, {
@@ -167,6 +168,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     // Log update action
     await logActivity(req, (req as any).user?.name || 'System Admin', 'Profile Updated', user.name);
+    logTimelineEvent({ userId: (req as any).user?._id?.toString() || 'system', role: 'admin', activityType: 'user_update', module: 'authentication', title: `Updated Profile: ${user.name}`, description: `Admin modified user account details for ${user.email}.`, icon: 'user-cog', color: 'amber' });
 
     res.status(200).json({
       success: true,
@@ -203,6 +205,7 @@ export const updateUserRole = async (req: Request, res: Response): Promise<void>
 
     // Log role modification
     await logActivity(req, (req as any).user?.name || 'System Admin', `Role Changed (${oldRole} -> ${role})`, user.name);
+    logTimelineEvent({ userId: (req as any).user?._id?.toString() || 'system', role: 'admin', activityType: 'role_change', module: 'authentication', title: `Role Changed: ${user.name}`, description: `User role updated from ${oldRole} to ${role}.`, icon: 'shield', color: 'violet' });
 
     res.status(200).json({
       success: true,
@@ -276,6 +279,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
     // Log removal action
     await logActivity(req, (req as any).user?.name || 'System Admin', 'User Deleted', user.name);
+    logTimelineEvent({ userId: (req as any).user?._id?.toString() || 'system', role: 'admin', activityType: 'user_deletion', module: 'authentication', title: `Deleted User: ${user.name}`, description: `User account ${user.email} (${user.role}) permanently removed.`, icon: 'user-x', color: 'rose' });
 
     res.status(200).json({ success: true, message: 'User deleted successfully.' });
   } catch (error: any) {

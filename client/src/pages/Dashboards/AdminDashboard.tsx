@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api.js';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card.js';
+import { AcademicIntelligence } from '../../components/intelligence/AcademicIntelligence.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
@@ -153,6 +154,7 @@ interface Toast {
 }
 
 export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard' }) => {
+  const [subView, setSubView] = useState<'traditional' | 'ai'>('ai');
   // Toast notifications state
   const [toasts, setToasts] = useState<Toast[]>([]);
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -549,9 +551,41 @@ export const AdminDashboard: React.FC<{ view?: string }> = ({ view = 'dashboard'
       </div>
 
       {/* ==========================================
-          1. DASHBOARD OVERVIEW VIEW
+          AI INTELLIGENCE TOGGLE (shown on overview tab)
           ========================================== */}
-      {activeTab === 'overview' && dashData && (
+      {activeTab === 'overview' && (
+        <div className="flex bg-slate-100/50 dark:bg-dark-surface/50 p-1 rounded-lg border border-border dark:border-dark-border max-w-max text-xs font-semibold select-none">
+          <button
+            onClick={() => setSubView('traditional')}
+            className={`px-4 py-2 rounded-md transition-all ${subView === 'traditional'
+              ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+              : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+              }`}
+          >
+            Academic Stats &amp; Audit Logs
+          </button>
+          <button
+            onClick={() => setSubView('ai')}
+            className={`px-4 py-2 rounded-md transition-all flex items-center gap-1.5 ${subView === 'ai'
+              ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+              : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+              }`}
+          >
+            <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" /> AI Academic Intelligence
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'overview' && subView === 'ai' && (
+        <div className="animate-fadeIn">
+          <AcademicIntelligence role="admin" />
+        </div>
+      )}
+
+      {/* ==========================================
+          1. DASHBOARD OVERVIEW VIEW (traditional)
+          ========================================== */}
+      {activeTab === 'overview' && subView === 'traditional' && dashData && (
         <div className="space-y-8">
           {/* Stats Cards Displaying 8 counters from Atlas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

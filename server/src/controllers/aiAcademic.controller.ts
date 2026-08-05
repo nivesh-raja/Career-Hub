@@ -20,6 +20,7 @@ import {
     generateLessonPlanService,
     generateNoticeReportService
 } from '../services/aiAcademic.service.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 // Helper to resolve Model by collection name
 const getModelByCollection = (collection: string) => {
@@ -52,6 +53,7 @@ export const generateNotes = async (req: AuthenticatedRequest, res: Response): P
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, notes: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'student', activityType: 'notes_generation', module: 'ai', title: `Generated Notes: ${topic}`, description: `AI notes created for ${subject || 'General'} — ${noteType || 'detailed'} format.`, icon: 'file-text', color: 'blue' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }
@@ -71,6 +73,7 @@ export const generateFlashcards = async (req: AuthenticatedRequest, res: Respons
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, flashcard: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'student', activityType: 'flashcard_generation', module: 'ai', title: `Generated Flashcards: ${topic}`, description: `Flashcard set created (${difficulty || 'medium'} difficulty).`, icon: 'layers', color: 'violet' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }
@@ -92,6 +95,7 @@ export const generateQuiz = async (req: AuthenticatedRequest, res: Response): Pr
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, quiz: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'student', activityType: 'quiz_generation', module: 'ai', title: `Generated Quiz: ${topic}`, description: `${quizType || 'MCQ'} quiz with ${questionsCount || 10} questions.`, icon: 'help-circle', color: 'emerald' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }
@@ -113,6 +117,7 @@ export const generateStudyPlan = async (req: AuthenticatedRequest, res: Response
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, studyPlan: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'student', activityType: 'study_plan_creation', module: 'ai', title: `Created Study Plan`, description: `Study schedule for ${subjects.length || 0} subjects, ${dailyStudyHours} hrs/day, exam ${new Date(examDate).toLocaleDateString()}.`, icon: 'calendar', color: 'indigo' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }
@@ -170,6 +175,7 @@ export const generateQuestionPaper = async (req: AuthenticatedRequest, res: Resp
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, questionPaper: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'faculty', activityType: 'question_paper_generation', module: 'ai', title: `Generated Question Paper: ${subject}`, description: `${examType || 'Semester'} exam paper with ${bloomTaxonomy || 'Apply'} taxonomy.`, icon: 'clipboard', color: 'orange' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }
@@ -191,6 +197,7 @@ export const generateLessonPlan = async (req: AuthenticatedRequest, res: Respons
             userId: String(req.user?._id)
         });
         res.status(201).json({ success: true, lessonPlan: doc });
+        logTimelineEvent({ userId: String(req.user?._id), role: 'faculty', activityType: 'lesson_plan_generation', module: 'ai', title: `Generated Lesson Plan: ${subject}`, description: `Lesson plan covering ${topics.length} topics over ${duration}.`, icon: 'book', color: 'teal' });
     } catch (e: any) {
         res.status(500).json({ success: false, message: e.message });
     }

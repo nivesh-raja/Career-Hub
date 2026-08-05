@@ -219,7 +219,7 @@ export const getStudentAnalytics = async (req: AuthenticatedRequest, res: Respon
         const studyMaterialsCount = await Material.countDocuments(materialsFilter);
 
         // Find the last uploaded study material for this student's classroom
-        const lastUploadedMaterial = classroomId 
+        const lastUploadedMaterial = classroomId
             ? await Material.findOne(materialsFilter)
                 .sort({ uploadDate: -1 })
                 .populate('subject', 'name')
@@ -989,7 +989,7 @@ export const getSystemOverviewAndInsights = async (req: AuthenticatedRequest, re
         if (deptActivity.length > 0) {
             deptActivity.sort((a, b) => b.count - a.count);
             insights.push(`${deptActivity[0].name} department has the highest assignment completion rate with ${deptActivity[0].count} submissions.`);
-            
+
             // Least active department
             const leastActive = deptActivity[deptActivity.length - 1];
             insights.push(`${leastActive.name} department is the least active with ${leastActive.count} submissions.`);
@@ -1089,3 +1089,124 @@ export const getSystemOverviewAndInsights = async (req: AuthenticatedRequest, re
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get role-aware smart alerts from live MongoDB aggregation
+// @route   GET /api/analytics/alerts
+// @access  Private (Student, Faculty, Admin)
+export const getAlertsForRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) { res.status(401).json({ success: false, message: 'Not authenticated' }); return; }
+        const userId = req.user._id;
+        const role = req.user.role;
+        const uid = new mongoose.Types.ObjectId(userId.toString());
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const alerts: any[] = [];
+
+        if (role === 'student') {
+            const student = await User.findById(uid);
+            const crId = student?.classroom;
+            // 1. Assignment deadlines within 48h
+            if (crId) {
+                const upcoming = await Assignment.find({ classroom: crId, dueDate: { $gt: now, $lt: new Date(now.getTime() + 48 * 60 * 60 * 1000) } }).populate('subject', 'name');
+                for (const a of upcoming) {
+                    const hasSub = await Submission.findOne({ assignment: a._id, student: uid });
+                    if (!hasSub) {
+                        const hoursLeft = Math.round((new Date(a.dueDate).getTime() - now.getTime()) / (1000 * 60 * 60));
+                        alerts.push({ title: `Deadline Alert: ${a.title}`, description: `"${a.title}" is due in ${hoursLeft}h. Submit now to avoid a late mark.`, severity: 'critical', priority: 'Critical', role: 'student', icon: 'clock', createdAt: now });
+                    }
+                }
+            }
+            // 2. Low completion rate
+            if (crId) {
+                const totalAss = await Assignment.countDocuments({ classroom: crId });
+                const completedAss = await Submission.countDocuments({ student: uid, status: { $in: ['Submitted', 'Reviewed'] } });
+                const rate = totalAss > 0 ? (completedAss / totalAss) * 100 : 100;
+                if (totalAss > 0 && rate < 60) alerts.push({ title: 'Low Assignment Completion Rate', description: `Only ${Math.round(rate)}% of assignments completed. ${totalAss - completedAss} still pending.`, severity: 'warning', priority: 'Warning', role: 'student', icon: 'alert-triangle', createdAt: now });
+            }
+            // 3. Low quiz score
+            const graded = await Submission.find({ student: uid, status: 'Reviewed', marks: { $exists: true } });
+            if (graded.length > 0) {
+                let scoreSum = 0; let cnt = 0;
+                for (const s of graded) { const a = await Assignment.findById(s.assignment); if (a && a.maxMarks > 0) { scoreSum += (s.marks! / a.maxMarks) * 100; cnt++; } }
+                const avg = cnt > 0 ? scoreSum / cnt : 100;
+                if (avg < 60) alerts.push({ title: 'Below-Average Graded Score', description: `Average score is ${Math.round(avg)}%. Use AI Assistant to review weak areas.`, severity: 'warning', priority: 'Warning', role: 'student', icon: 'trending-down', createdAt: now });
+            }
+            // 4. No activity in 7 days
+            const recentActivity = await AIChat.countDocuments({ user: uid, createdAt: { $gte: sevenDaysAgo } }) + await AINotes.countDocuments({ user: uid, createdAt: { $gte: sevenDaysAgo } }) + await Submission.countDocuments({ student: uid, createdAt: { $gte: sevenDaysAgo } });
+            if (recentActivity === 0) alerts.push({ title: 'Academic Activity Gap Detected', description: 'No study activity in the past 7 days. Regular usage improves your health score significantly.', severity: 'info', priority: 'Information', role: 'student', icon: 'calendar-x', createdAt: now });
+            // 5. New study materials
+            if (crId) {
+                const newMats = await Material.countDocuments({ classroom: crId, createdAt: { $gte: sevenDaysAgo } });
+                if (newMats > 0) alerts.push({ title: `${newMats} New Study Material${newMats > 1 ? 's' : ''} Uploaded`, description: `Your faculty uploaded ${newMats} new material(s) this week. Review them and use AI Chat to clarify concepts.`, severity: 'info', priority: 'Information', role: 'student', icon: 'book-open', createdAt: now });
+            }
+            // 6. Unread announcements
+            if (crId) {
+                const recentAnn = await Announcement.countDocuments({ $or: [{ classroom: crId }, { targetRole: 'student' }], createdAt: { $gte: sevenDaysAgo } });
+                if (recentAnn > 0) alerts.push({ title: `${recentAnn} New Announcement${recentAnn > 1 ? 's' : ''}`, description: `${recentAnn} announcement(s) from faculty this week. Check the Notices Board tab.`, severity: 'info', priority: 'Information', role: 'student', icon: 'megaphone', createdAt: now });
+            }
+
+        } else if (role === 'faculty') {
+            const classRooms = await Classroom.find({ faculty: uid });
+            const classIds = classRooms.map(c => c._id);
+            const assignments = await Assignment.find({ classroom: { $in: classIds } }).select('_id title dueDate');
+            const assignmentIds = assignments.map(a => a._id);
+            // 1. Pending grading
+            const pendingGrade = await Submission.countDocuments({ assignment: { $in: assignmentIds }, status: 'Submitted' });
+            if (pendingGrade > 0) alerts.push({ title: `${pendingGrade} Submission${pendingGrade > 1 ? 's' : ''} Awaiting Review`, description: `${pendingGrade} student submission(s) pending grading. Timely feedback improves classroom engagement scores.`, severity: pendingGrade > 5 ? 'critical' : 'warning', priority: pendingGrade > 5 ? 'Critical' : 'Warning', role: 'faculty', icon: 'file-check', createdAt: now });
+            // 2. Low classroom submission rates
+            for (const c of classRooms) {
+                const classAss = await Assignment.find({ classroom: c._id }).select('_id');
+                const expectedSubs = classAss.length * c.students.length;
+                if (expectedSubs > 0) {
+                    const actualSubs = await Submission.countDocuments({ assignment: { $in: classAss.map(a => a._id) } });
+                    const rate = (actualSubs / expectedSubs) * 100;
+                    if (rate < 50) alerts.push({ title: `Low Engagement: ${c.className}`, description: `Only ${Math.round(rate)}% of expected submissions in ${c.className}. Consider a reminder or review quiz.`, severity: 'critical', priority: 'Critical', role: 'faculty', icon: 'users', createdAt: now });
+                }
+            }
+            // 3. Faculty inactivity
+            const recentContent = await Assignment.countDocuments({ faculty: uid, createdAt: { $gte: sevenDaysAgo } }) + await Material.countDocuments({ faculty: uid, createdAt: { $gte: sevenDaysAgo } });
+            if (recentContent === 0) alerts.push({ title: 'Faculty Activity Gap', description: 'No new assignments or materials published this week. Regular content keeps students engaged.', severity: 'warning', priority: 'Warning', role: 'faculty', icon: 'calendar-x', createdAt: now });
+            // 4. AI usage drop
+            const prevWeek = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+            const thisWeekAI = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: sevenDaysAgo } }) + await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: sevenDaysAgo } });
+            const prevWeekAI = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: prevWeek, $lt: sevenDaysAgo } }) + await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: prevWeek, $lt: sevenDaysAgo } });
+            if (prevWeekAI > 0 && thisWeekAI === 0) alerts.push({ title: 'AI Tool Usage Drop', description: `${prevWeekAI} AI tools used last week, none this week. The AI Workshop can help generate lesson plans faster.`, severity: 'info', priority: 'Information', role: 'faculty', icon: 'sparkles', createdAt: now });
+            // 5. Upcoming deadlines in 24h
+            const upcoming24 = await Assignment.find({ classroom: { $in: classIds }, dueDate: { $gt: now, $lt: new Date(now.getTime() + 24 * 60 * 60 * 1000) } });
+            if (upcoming24.length > 0) alerts.push({ title: `${upcoming24.length} Deadline${upcoming24.length > 1 ? 's' : ''} in 24 Hours`, description: `${upcoming24.map(a => a.title).join(', ')} – prepare to review incoming submissions.`, severity: 'info', priority: 'Information', role: 'faculty', icon: 'clock', createdAt: now });
+
+        } else {
+            // Admin alerts
+            // 1. Departments with no classrooms
+            const allDepts = await Department.find();
+            for (const d of allDepts) {
+                const cls = await Classroom.countDocuments({ department: d._id });
+                if (cls === 0) alerts.push({ title: `Inactive Department: ${d.name}`, description: `"${d.name}" (${d.code}) has no classrooms. Assign faculty and create a classroom to activate it.`, severity: 'critical', priority: 'Critical', role: 'admin', icon: 'building', createdAt: now });
+            }
+            // 2. Faculty inactive this week
+            const allFaculty = await User.find({ role: 'faculty' });
+            let inactiveF = 0;
+            for (const f of allFaculty) { const ra = await Assignment.countDocuments({ faculty: f._id, createdAt: { $gte: sevenDaysAgo } }); if (ra === 0) inactiveF++; }
+            if (inactiveF > 0) alerts.push({ title: `${inactiveF} Faculty Member${inactiveF > 1 ? 's' : ''} Inactive This Week`, description: `${inactiveF} faculty haven't published any assignments in 7 days. Consider engagement follow-up.`, severity: 'warning', priority: 'Warning', role: 'admin', icon: 'user-x', createdAt: now });
+            // 3. At-risk students
+            const allStudents = await User.find({ role: 'student' });
+            let atRisk = 0;
+            for (const s of allStudents) { const r = await Submission.countDocuments({ student: s._id, createdAt: { $gte: sevenDaysAgo } }); if (r === 0) atRisk++; }
+            if (atRisk > 0) alerts.push({ title: `${atRisk} At-Risk Student${atRisk > 1 ? 's' : ''} – No Activity`, description: `${atRisk} student(s) have no submissions in 7 days. Faculty intervention recommended.`, severity: atRisk > 3 ? 'critical' : 'warning', priority: atRisk > 3 ? 'Critical' : 'Warning', role: 'admin', icon: 'alert-octagon', createdAt: now });
+            // 4. AI adoption
+            const totalAI = await AIChat.countDocuments() + await AINotes.countDocuments() + await AIQuiz.countDocuments();
+            const totalActive = await User.countDocuments({ isActive: true });
+            if (totalActive > 0 && (totalAI / totalActive) < 2) alerts.push({ title: 'Low Platform-Wide AI Adoption', description: `Avg ${(totalAI / totalActive).toFixed(1)} AI interactions/user. Promote document upload and AI Chat features.`, severity: 'info', priority: 'Information', role: 'admin', icon: 'sparkles', createdAt: now });
+            // 5. Weekly summary
+            const weekSubs = await Submission.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+            const weekAss = await Assignment.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+            alerts.push({ title: 'Weekly Platform Health Summary', description: `This week: ${weekSubs} submissions, ${weekAss} assignments published, ${totalAI} total AI interactions.`, severity: 'info', priority: 'Information', role: 'admin', icon: 'activity', createdAt: now });
+        }
+
+        res.status(200).json({ success: true, role, total: alerts.length, alerts });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

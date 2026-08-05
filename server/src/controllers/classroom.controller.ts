@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Classroom from '../models/classroom.model.js';
 import User from '../models/user.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 import mongoose from 'mongoose';
 
 // @desc    Get all classrooms
@@ -50,17 +51,18 @@ export const createClassroom = async (req: Request, res: Response): Promise<void
       const studentIds = students.map((id: string) => new mongoose.Types.ObjectId(id));
       await User.updateMany(
         { _id: { $in: studentIds } },
-        { 
-          $set: { 
+        {
+          $set: {
             classroom: classroom._id,
             department: new mongoose.Types.ObjectId(department)
-          } 
+          }
         }
       );
     }
 
     // Log classroom creation
     await logActivity(req, (req as any).user?.name || 'System Admin', 'Classroom Created', className);
+    logTimelineEvent({ userId: (req as any).user?._id?.toString() || 'system', role: 'admin', activityType: 'classroom_creation', module: 'classrooms', title: `Created Classroom: ${className}`, description: `New classroom for ${academicYear}, capacity ${capacity || 60}.`, icon: 'layout', color: 'emerald' });
 
     res.status(201).json({ success: true, classroom });
   } catch (error: any) {
@@ -90,13 +92,13 @@ export const updateClassroom = async (req: Request, res: Response): Promise<void
     if (capacity) classroom.capacity = capacity;
     if (academicYear) classroom.academicYear = academicYear;
     if (status) classroom.status = status;
-    
+
     classroom.faculty = faculty ? new mongoose.Types.ObjectId(faculty) : undefined;
-    
+
     if (students !== undefined) {
       classroom.students = students.map((s: string) => new mongoose.Types.ObjectId(s));
     }
-    
+
     if (subjects !== undefined) {
       classroom.subjects = subjects.map((sub: string) => new mongoose.Types.ObjectId(sub));
     }
@@ -106,7 +108,7 @@ export const updateClassroom = async (req: Request, res: Response): Promise<void
     // Sync Student models
     if (students !== undefined) {
       const currentStudents = students.map((s: string) => String(s));
-      
+
       // Removed students: students in previous but not in current list
       const removedStudents = previousStudents.filter((id: string) => !currentStudents.includes(id));
       if (removedStudents.length > 0) {
@@ -121,11 +123,11 @@ export const updateClassroom = async (req: Request, res: Response): Promise<void
       if (addedStudents.length > 0) {
         await User.updateMany(
           { _id: { $in: addedStudents.map((id: string) => new mongoose.Types.ObjectId(id)) } },
-          { 
-            $set: { 
+          {
+            $set: {
               classroom: classroom._id,
               department: classroom.department
-            } 
+            }
           }
         );
       }
@@ -133,6 +135,7 @@ export const updateClassroom = async (req: Request, res: Response): Promise<void
 
     // Log updates
     await logActivity(req, (req as any).user?.name || 'System Admin', 'Classroom Updated', classroom.className);
+    logTimelineEvent({ userId: (req as any).user?._id?.toString() || 'system', role: 'admin', activityType: 'classroom_update', module: 'classrooms', title: `Updated Classroom: ${classroom.className}`, description: `Classroom configuration modified.`, icon: 'edit', color: 'amber' });
 
     res.status(200).json({ success: true, message: 'Classroom updated successfully.', classroom });
   } catch (error: any) {

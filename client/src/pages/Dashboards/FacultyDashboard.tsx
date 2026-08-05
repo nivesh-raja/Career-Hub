@@ -17,8 +17,10 @@ import {
   Search,
   X,
   ChevronRight,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
+import { AcademicIntelligence } from '../../components/intelligence/AcademicIntelligence.js';
 
 interface Subject {
   _id: string;
@@ -177,6 +179,7 @@ interface Toast {
 
 export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview' }) => {
   const { user } = useAuth();
+  const [subView, setSubView] = useState<'traditional' | 'ai'>('ai');
 
   // Toast notifications state
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -515,105 +518,136 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Your Classrooms</p>
-                  <h3 className="text-xl font-bold mt-1">{facultyClassrooms.length} Sections</h3>
-                </div>
-                <div className="p-2 border rounded-md text-primary bg-primary-light border-primary/10">
-                  <BookOpen className="h-4.5 w-4.5" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Total Scholars</p>
-                  <h3 className="text-xl font-bold mt-1">{allStudents.length} Students</h3>
-                </div>
-                <div className="p-2 border rounded-md text-success bg-success-light border-success/10">
-                  <Users className="h-4.5 w-4.5" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Bulletins Published</p>
-                  <h3 className="text-xl font-bold mt-1">
-                    {announcementsData?.announcements.filter(a => a.faculty?._id === user?._id).length || 0} Notices
-                  </h3>
-                </div>
-                <div className="p-2 border rounded-md text-warning bg-warning-light border-warning/10">
-                  <Megaphone className="h-4.5 w-4.5" />
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex bg-slate-100/50 dark:bg-dark-surface/50 p-1 rounded-lg border border-border dark:border-dark-border max-w-max text-xs font-semibold select-none">
+            <button
+              onClick={() => setSubView('traditional')}
+              className={`px-4 py-2 rounded-md transition-all ${subView === 'traditional'
+                ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+                : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+                }`}
+            >
+              Academic Calendar & Rooms
+            </button>
+            <button
+              onClick={() => setSubView('ai')}
+              className={`px-4 py-2 rounded-md transition-all flex items-center gap-1.5 ${subView === 'ai'
+                ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+                : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+                }`}
+            >
+              <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" /> AI Academic Intelligence
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Quick Classrooms grid */}
-            <Card className="lg:col-span-2 bg-white">
-              <CardHeader>
-                <CardTitle>My Classrooms</CardTitle>
-                <CardDescription>Academic sections assigned to your teaching plan.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {facultyClassrooms.map(c => (
-                    <div
-                      key={c._id}
-                      onClick={() => { setSelectedClassroomId(c._id); setClassroomTab('overview'); }}
-                      className="p-4 border border-border dark:border-dark-border rounded-lg bg-slate-50/20 dark:bg-dark-surface/40 hover:border-primary/40 hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30 cursor-pointer flex justify-between items-center transition-all duration-150"
-                    >
-                      <div>
-                        <h4 className="text-xs font-bold text-text-primary dark:text-gray-200">{c.className}</h4>
-                        <span className="text-[10px] text-text-secondary dark:text-slate-400 mt-1 block">
-                          Sem {c.semester} • Section {c.section} • {c.academicYear}
-                        </span>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-text-secondary dark:text-slate-400" />
-                    </div>
-                  ))}
-                  {facultyClassrooms.length === 0 && (
-                    <div className="col-span-2 py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
-                      No classroom assignments registered. Contact administrators.
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          {subView === 'ai' && (
+            <div className="animate-fadeIn">
+              <AcademicIntelligence role="faculty" />
+            </div>
+          )}
 
-            {/* Today Schedule List */}
-            <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
-              <CardHeader>
-                <CardTitle>Weekly Lectures</CardTitle>
-                <CardDescription>Timetable slots mapped in the database.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {timetablesData?.timetables.flatMap(t => t.slots.filter(s => s.faculty?._id === user?._id).map(s => ({ day: t.dayOfWeek, ...s }))).map((slot, idx) => (
-                  <div key={idx} className="p-3 border border-border dark:border-dark-border rounded bg-slate-50/50 dark:bg-dark-surface/40 flex gap-3">
-                    <div className="p-1.5 bg-warning-light border border-warning/10 text-warning-text rounded-md self-start shrink-0">
-                      <Clock className="h-3.5 w-3.5" />
-                    </div>
+          {subView === 'traditional' && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+                  <CardContent className="p-5 flex items-center justify-between">
                     <div>
-                      <h5 className="text-xs font-bold text-text-primary dark:text-gray-200">{slot.subject?.name}</h5>
-                      <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold mt-1">
-                        {slot.day} • {slot.time} • Room {slot.room}
-                      </p>
+                      <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Your Classrooms</p>
+                      <h3 className="text-xl font-bold mt-1">{facultyClassrooms.length} Sections</h3>
                     </div>
-                  </div>
-                ))}
-                {(!timetablesData || timetablesData.timetables.length === 0) && (
-                  <div className="py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
-                    No active lecture schedule slots found.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    <div className="p-2 border rounded-md text-primary bg-primary-light border-primary/10">
+                      <BookOpen className="h-4.5 w-4.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+                  <CardContent className="p-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Total Scholars</p>
+                      <h3 className="text-xl font-bold mt-1">{allStudents.length} Students</h3>
+                    </div>
+                    <div className="p-2 border rounded-md text-success bg-success-light border-success/10">
+                      <Users className="h-4.5 w-4.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+                  <CardContent className="p-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase">Bulletins Published</p>
+                      <h3 className="text-xl font-bold mt-1">
+                        {announcementsData?.announcements.filter(a => a.faculty?._id === user?._id).length || 0} Notices
+                      </h3>
+                    </div>
+                    <div className="p-2 border rounded-md text-warning bg-warning-light border-warning/10">
+                      <Megaphone className="h-4.5 w-4.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Quick Classrooms grid */}
+                <Card className="lg:col-span-2 bg-white">
+                  <CardHeader>
+                    <CardTitle>My Classrooms</CardTitle>
+                    <CardDescription>Academic sections assigned to your teaching plan.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {facultyClassrooms.map(c => (
+                        <div
+                          key={c._id}
+                          onClick={() => { setSelectedClassroomId(c._id); setClassroomTab('overview'); }}
+                          className="p-4 border border-border dark:border-dark-border rounded-lg bg-slate-50/20 dark:bg-dark-surface/40 hover:border-primary/40 hover:bg-slate-50/50 dark:bg-dark-surface/40 dark:hover:bg-dark-hover/30 cursor-pointer flex justify-between items-center transition-all duration-150"
+                        >
+                          <div>
+                            <h4 className="text-xs font-bold text-text-primary dark:text-gray-200">{c.className}</h4>
+                            <span className="text-[10px] text-text-secondary dark:text-slate-400 mt-1 block">
+                              Sem {c.semester} • Section {c.section} • {c.academicYear}
+                            </span>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-text-secondary dark:text-slate-400" />
+                        </div>
+                      ))}
+                      {facultyClassrooms.length === 0 && (
+                        <div className="col-span-2 py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
+                          No classroom assignments registered. Contact administrators.
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Today Schedule List */}
+                <Card className="bg-white/40 dark:bg-dark-card/30 backdrop-blur-sm border border-border dark:border-dark-border">
+                  <CardHeader>
+                    <CardTitle>Weekly Lectures</CardTitle>
+                    <CardDescription>Timetable slots mapped in the database.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {timetablesData?.timetables.flatMap(t => t.slots.filter(s => s.faculty?._id === user?._id).map(s => ({ day: t.dayOfWeek, ...s }))).map((slot, idx) => (
+                      <div key={idx} className="p-3 border border-border dark:border-dark-border rounded bg-slate-50/50 dark:bg-dark-surface/40 flex gap-3">
+                        <div className="p-1.5 bg-warning-light border border-warning/10 text-warning-text rounded-md self-start shrink-0">
+                          <Clock className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <h5 className="text-xs font-bold text-text-primary dark:text-gray-200">{slot.subject?.name}</h5>
+                          <p className="text-[9px] text-text-secondary dark:text-slate-400 font-semibold mt-1">
+                            {slot.day} • {slot.time} • Room {slot.room}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {(!timetablesData || timetablesData.timetables.length === 0) && (
+                      <div className="py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
+                        No active lecture schedule slots found.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -682,7 +716,9 @@ export const FacultyDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               <button
                 key={tab.id}
                 onClick={() => setClassroomTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-colors ${classroomTab === tab.id ? 'bg-white text-text-primary dark:text-gray-200 shadow-subtle' : 'text-text-secondary dark:text-slate-400 hover:bg-slate-200'
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold select-none transition-all ${classroomTab === tab.id
+                    ? 'bg-white dark:bg-dark-card text-primary dark:text-primary-300 shadow-subtle'
+                    : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200 hover:bg-slate-200/50 dark:hover:bg-dark-hover/40'
                   }`}
               >
                 {tab.label}

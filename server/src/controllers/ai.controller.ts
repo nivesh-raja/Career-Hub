@@ -6,6 +6,7 @@ import AIChat from '../models/aiChat.model.js';
 import AIDocument from '../models/aiDocument.model.js';
 import DocumentChunk from '../models/documentChunk.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 import {
     classifyIntent,
     generateNotesService,
@@ -203,6 +204,7 @@ Strict Domain & RAG Rules:
         });
 
         await logActivity(req, req.user?.name || 'User', 'AI Chat', String(req.user?.name));
+        logTimelineEvent({ userId: String(req.user?._id), role: req.user?.role as any, activityType: 'ai_chat', module: 'ai', title: `AI Chat`, description: `Asked: "${prompt.substring(0, 60)}${prompt.length > 60 ? '...' : ''}".`, icon: 'message-circle', color: 'blue' });
         res.status(200).json({ success: true, response: responseText, chat: chatDoc, sourceDocuments });
     } catch (error: any) {
         console.error('[Chat error]:', error.message);
@@ -287,6 +289,7 @@ export const uploadDocument = async (req: AuthenticatedRequest, res: Response): 
         );
 
         await logActivity(req, req.user?.name || 'User', 'Document Uploaded (AI)', file.originalname);
+        logTimelineEvent({ userId: String(req.user?._id), role: req.user?.role as any, activityType: 'document_upload', module: 'documents', title: `Uploaded Document: ${file.originalname}`, description: `Document uploaded for RAG processing (${(file.size / 1024).toFixed(1)} KB).`, icon: 'upload-cloud', color: 'cyan' });
         res.status(201).json({
             success: true,
             document: doc,

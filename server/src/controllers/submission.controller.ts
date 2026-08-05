@@ -4,6 +4,7 @@ import Submission from '../models/submission.model.js';
 import Assignment from '../models/assignment.model.js';
 import User from '../models/user.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 export const getSubmissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -73,6 +74,7 @@ export const createSubmission = async (req: AuthenticatedRequest, res: Response)
     }
 
     res.status(201).json({ success: true, submission });
+    logTimelineEvent({ userId: req.user!._id.toString(), role: 'student', activityType: 'assignment_submission', module: 'assignments', title: `Submitted: ${targetAssignment.title}`, description: `Assignment ${isLate ? 'submitted late' : 'submitted on time'}. Files: ${files.length}.`, icon: 'upload', color: isLate ? 'amber' : 'emerald', metadata: { assignmentId: targetAssignment._id } });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -116,6 +118,7 @@ export const reviewSubmission = async (req: AuthenticatedRequest, res: Response)
 
     const studentName = (submission.student as any)?.name || 'Student';
     await logActivity(req, req.user?.name || 'Faculty', 'Submission Reviewed', studentName);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: 'faculty', activityType: 'submission_review', module: 'assignments', title: `Graded ${studentName}'s submission`, description: `Reviewed assignment "${assignment.title}" — awarded ${marks}/${assignment.maxMarks}.`, icon: 'check-circle', color: 'violet' });
 
     res.status(200).json({ success: true, submission });
   } catch (error: any) {

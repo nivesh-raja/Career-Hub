@@ -6,7 +6,8 @@ import {
     getFacultyAnalytics,
     getAdminAnalytics,
     getAIAnalytics,
-    getSystemOverviewAndInsights
+    getSystemOverviewAndInsights,
+    getAlertsForRole
 } from '../controllers/analytics.controller.js';
 
 const router = Router();
@@ -18,6 +19,7 @@ router.get('/faculty/:id', protect, authorizeRole('admin', 'faculty'), getFacult
 router.get('/admin', protect, adminOnly, getAdminAnalytics);
 router.get('/ai', protect, getAIAnalytics);
 router.get('/overview', protect, getSystemOverviewAndInsights);
+router.get('/alerts', protect, getAlertsForRole);
 
 export default router;
 

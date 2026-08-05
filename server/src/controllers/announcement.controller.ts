@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import Announcement from '../models/announcement.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 export const getAnnouncements = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -64,6 +65,7 @@ export const createAnnouncement = async (req: AuthenticatedRequest, res: Respons
     });
 
     await logActivity(req, req.user?.name || 'User', 'Announcement Published', title);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: req.user!.role as any, activityType: 'announcement_creation', module: 'classrooms', title: `Posted Notice: ${title}`, description: `Announcement broadcast to ${req.user?.role === 'admin' ? 'faculty' : 'students'}.`, icon: 'megaphone', color: 'orange' });
 
     res.status(201).json({ success: true, announcement });
   } catch (error: any) {

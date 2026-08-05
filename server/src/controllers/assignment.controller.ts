@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import Assignment from '../models/assignment.model.js';
 import Classroom from '../models/classroom.model.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 export const getAssignments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
@@ -57,6 +58,7 @@ export const createAssignment = async (req: AuthenticatedRequest, res: Response)
     });
 
     await logActivity(req, req.user?.name || 'Faculty', 'Assignment Created', title);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: 'faculty', activityType: 'assignment_creation', module: 'assignments', title: `Published Assignment: ${title}`, description: `New assignment due ${new Date(dueDate).toLocaleDateString()}, max marks: ${maxMarks}.`, icon: 'file-plus', color: 'blue' });
 
     res.status(201).json({ success: true, assignment });
   } catch (error: any) {
@@ -92,6 +94,7 @@ export const updateAssignment = async (req: AuthenticatedRequest, res: Response)
     await assignment.save();
 
     await logActivity(req, req.user?.name || 'Faculty', 'Assignment Updated', assignment.title);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: 'faculty', activityType: 'assignment_update', module: 'assignments', title: `Updated Assignment: ${assignment.title}`, description: `Assignment details modified.`, icon: 'edit', color: 'amber' });
 
     res.status(200).json({ success: true, assignment });
   } catch (error: any) {
@@ -117,6 +120,7 @@ export const deleteAssignment = async (req: AuthenticatedRequest, res: Response)
     await Assignment.findByIdAndDelete(id);
 
     await logActivity(req, req.user?.name || 'Faculty', 'Assignment Deleted', assignment.title);
+    logTimelineEvent({ userId: req.user!._id.toString(), role: req.user!.role as any, activityType: 'assignment_deletion', module: 'assignments', title: `Deleted Assignment: ${assignment.title}`, description: `Assignment permanently removed.`, icon: 'trash-2', color: 'rose' });
 
     res.status(200).json({ success: true, message: 'Assignment deleted successfully.' });
   } catch (error: any) {

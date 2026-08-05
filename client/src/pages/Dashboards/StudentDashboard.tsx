@@ -15,8 +15,10 @@ import {
   AlertCircle,
   Upload,
   Search,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
+import { AcademicIntelligence } from '../../components/intelligence/AcademicIntelligence.js';
 
 interface Subject {
   _id: string;
@@ -138,6 +140,7 @@ interface Timetable {
 
 export const StudentDashboard: React.FC<{ view?: string }> = ({ view = 'overview' }) => {
   const { user } = useAuth();
+  const [subView, setSubView] = useState<'traditional' | 'ai'>('ai');
 
   // Submit modal states
   const [submittingAssignment, setSubmittingAssignment] = useState<Assignment | null>(null);
@@ -258,8 +261,37 @@ export const StudentDashboard: React.FC<{ view?: string }> = ({ view = 'overview
         </Badge>
       </div>
 
-      {/* Dashboard Overview view */}
       {view === 'overview' && (
+        <div className="flex bg-slate-100/50 dark:bg-dark-surface/50 p-1 rounded-lg border border-border dark:border-dark-border max-w-max text-xs font-semibold select-none">
+          <button
+            onClick={() => setSubView('traditional')}
+            className={`px-4 py-2 rounded-md transition-all ${subView === 'traditional'
+                ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+                : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+              }`}
+          >
+            Academic Calendar & Tasks
+          </button>
+          <button
+            onClick={() => setSubView('ai')}
+            className={`px-4 py-2 rounded-md transition-all flex items-center gap-1.5 ${subView === 'ai'
+                ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 font-bold'
+                : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
+              }`}
+          >
+            <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" /> AI Academic Intelligence
+          </button>
+        </div>
+      )}
+
+      {/* Dashboard Overview view */}
+      {view === 'overview' && subView === 'ai' && (
+        <div className="animate-fadeIn">
+          <AcademicIntelligence role="student" />
+        </div>
+      )}
+
+      {view === 'overview' && subView === 'traditional' && (
         <div className="space-y-6">
           {/* Live KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -418,9 +450,8 @@ export const StudentDashboard: React.FC<{ view?: string }> = ({ view = 'overview
               </CardContent>
             </Card>
           </div>
-        </div >
-      )
-      }
+        </div>
+      )}
 
       {/* Classroom view */}
       {

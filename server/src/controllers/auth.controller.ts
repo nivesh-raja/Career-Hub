@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import User from '../models/user.model.js';
 import { generateToken } from '../utils/jwt.js';
 import { logActivity } from '../utils/activityLogger.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -68,6 +69,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
 
     await logActivity(req, user.name || 'Unknown', 'User Created', user.name);
+    logTimelineEvent({ userId: (user._id as any).toString(), role: user.role as any, activityType: 'register', module: 'authentication', title: 'Account Created', description: `New ${user.role} account registered with email ${user.email}.`, icon: 'user-plus', color: 'emerald' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -126,6 +128,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     await logActivity(req, user.name || 'Unknown', 'User Login', user.name);
+    logTimelineEvent({ userId: (user._id as any).toString(), role: user.role as any, activityType: 'login', module: 'authentication', title: 'Signed In', description: `User logged in successfully.`, icon: 'log-in', color: 'blue' });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -162,6 +165,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<v
 export const logout = async (req: Request, res: Response): Promise<void> => {
   if ((req as any).user) {
     await logActivity(req, (req as any).user.name || 'Unknown', 'User Logout', (req as any).user.name);
+    logTimelineEvent({ userId: (req as any).user._id.toString(), role: (req as any).user.role, activityType: 'logout', module: 'authentication', title: 'Signed Out', description: 'User session ended.', icon: 'log-out', color: 'slate' });
   }
   res.status(200).json({ success: true, message: 'Logged out successfully.' });
 };
