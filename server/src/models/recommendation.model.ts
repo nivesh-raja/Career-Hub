@@ -9,6 +9,8 @@ export interface IRecommendation extends Document {
     actionableItem?: string;
     priority: 'low' | 'medium' | 'high' | 'critical';
     category: string;
+    reason?: string;
+    confidence?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -52,6 +54,15 @@ const RecommendationSchema: Schema = new Schema(
             type: String,
             required: true,
             trim: true,
+        },
+        reason: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        confidence: {
+            type: Number,
+            default: 80,
         },
     },
     {

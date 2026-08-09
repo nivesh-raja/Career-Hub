@@ -17,11 +17,14 @@ dotenv.config();
 // Helper to clean JSON string from LLM responses
 export const cleanJsonResponse = (rawText: string): any => {
     let clean = rawText.trim();
-    // Remove markdown code blocks if present
-    if (clean.startsWith('```')) {
-        const matches = clean.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-        if (matches && matches[1]) {
-            clean = matches[1].trim();
+    const markdownMatch = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (markdownMatch && markdownMatch[1]) {
+        clean = markdownMatch[1].trim();
+    } else {
+        const startIdx = clean.search(/[\[\{]/);
+        const endIdx = Math.max(clean.lastIndexOf(']'), clean.lastIndexOf('}'));
+        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+            clean = clean.substring(startIdx, endIdx + 1);
         }
     }
     try {
@@ -177,7 +180,15 @@ ${contextBlock ? `\nDocument Context:\n${contextBlock}` : ''}`;
         { role: 'user', content: userPrompt }
     ]);
 
-    const parsedQuestions = cleanJsonResponse(response);
+    let parsedQuestions = cleanJsonResponse(response);
+    if (!Array.isArray(parsedQuestions)) {
+        if (parsedQuestions.questions && Array.isArray(parsedQuestions.questions)) {
+            parsedQuestions = parsedQuestions.questions;
+        } else {
+            console.error('AI Quiz Output is not an array:', parsedQuestions);
+            throw new Error('AI output was not an array format.');
+        }
+    }
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
 
     const quizDoc = await AIQuiz.create({

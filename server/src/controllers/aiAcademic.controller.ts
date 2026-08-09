@@ -97,6 +97,7 @@ export const generateQuiz = async (req: AuthenticatedRequest, res: Response): Pr
         res.status(201).json({ success: true, quiz: doc });
         logTimelineEvent({ userId: String(req.user?._id), role: 'student', activityType: 'quiz_generation', module: 'ai', title: `Generated Quiz: ${topic}`, description: `${quizType || 'MCQ'} quiz with ${questionsCount || 10} questions.`, icon: 'help-circle', color: 'emerald' });
     } catch (e: any) {
+        console.error('Quiz Generation Error:', e);
         res.status(500).json({ success: false, message: e.message });
     }
 };

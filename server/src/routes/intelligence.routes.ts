@@ -7,7 +7,10 @@ import {
     listNotifications,
     setNotificationRead,
     setAllNotificationsRead,
-    removeNotification
+    removeNotification,
+    getUserRecommendations,
+    getUserPredictions,
+    getUserRiskAssessment
 } from '../controllers/intelligence.controller.js';
 
 const router = Router();
@@ -16,6 +19,9 @@ router.get('/dashboard', protect, getDashboardIntelligence);
 router.get('/timeline', protect, lazyLoadTimeline);
 router.get('/weekly', protect, getUserWeeklyReport);
 router.get('/report', protect, getUserWeeklyReport);
+router.get('/recommendations', protect, getUserRecommendations);
+router.get('/predictions', protect, getUserPredictions);
+router.get('/risk', protect, getUserRiskAssessment);
 router.get('/notifications', protect, listNotifications);
 router.put('/notifications/mark-all-read', protect, setAllNotificationsRead);
 router.put('/notifications/:id/read', protect, setNotificationRead);

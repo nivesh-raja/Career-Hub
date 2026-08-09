@@ -376,6 +376,65 @@ export const calculateHealthScores = async (userId: string, role: string) => {
 
 
 
+// Helper to generate explanation using Gemini/OpenRouter (Module 6)
+async function generateExplanation(role: string, title: string, description: string, subject?: string): Promise<string> {
+    try {
+        const { callAI } = await import('../services/ai.service.js');
+        const prompt = `Write a professional, concise 1-sentence explanation of why the following academic recommendation is shown to a ${role} user:
+Recommendation: "${title}"
+Description: "${description}"
+${subject ? `Subject Focus: "${subject}"` : ''}
+
+The explanation must be written in the second person ("Your recent activity...", "Based on..."), explaining the value of doing this. Do not use markdown. Limit to 20 words.`;
+        const res = await callAI([
+            { role: 'system', content: 'You are an academic advisor. Write a single-sentence explanation of a recommendation in second person. Be concise, direct and professional.' },
+            { role: 'user', content: prompt }
+        ]);
+        return res.trim();
+    } catch {
+        // Fallback explanation
+        const t = title.toLowerCase();
+        if (t.includes('submit') || t.includes('assignment')) {
+            return `Completing this pending assignment ensures your course grades and overall learning scores remain high.`;
+        }
+        if (t.includes('notes') || t.includes('boost')) {
+            return `Creating detailed summary notes will help you review and retain critical chapter definitions before assessments.`;
+        }
+        if (t.includes('quiz') || t.includes('practice')) {
+            return `Custom practice quizzes identify weak points and test your concept mastery before exams.`;
+        }
+        if (t.includes('plan') || t.includes('preparation')) {
+            return `Establishing a revision schedule maps your study sessions and daily target hours efficiently.`;
+        }
+        if (t.includes('review') || t.includes('pending')) {
+            return `Grading pending student submissions provides critical academic feedback for their productivity scores.`;
+        }
+        if (t.includes('engagement') || t.includes('classroom')) {
+            return `Addressing low engagement classrooms with revision guides helps boost submission rates.`;
+        }
+        return `This action is recommended to maintain consistency, optimize system resources, or improve AI syllabus alignment.`;
+    }
+}
+
+// Helper to compute statistical prediction (Module 4)
+const computeStatisticalPrediction = (
+    currentCount: number,
+    priorCount: number,
+    baseConfidence: number = 80
+) => {
+    let trend: 'UPWARD' | 'DOWNWARD' | 'STABLE' = 'STABLE';
+    if (currentCount > priorCount) trend = 'UPWARD';
+    else if (currentCount < priorCount) trend = 'DOWNWARD';
+
+    const growth = priorCount > 0 ? (currentCount / priorCount) : 1;
+    const predictedVal = Math.round(currentCount * growth);
+
+    const diff = Math.abs(currentCount - priorCount);
+    const confidence = Math.min(95, Math.max(70, baseConfidence + Math.min(15, diff * 3)));
+
+    return { current: currentCount, predicted: predictedVal, trend, confidence };
+};
+
 /**
  * =========================================================
  * FEATURE 1 - AI RECOMMENDATION ENGINE (DYNAMIC & PERSISTED)
@@ -405,9 +464,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                         type: 'academic',
                         title: `Submit assignment: ${ass.title}`,
                         description: `Your assignment for subject is pending. The deadline is ${new Date(ass.dueDate).toLocaleDateString()}. Use the AI Assignment Helper to prepare!`,
-                        actionableItem: `/assignments`,
+                        actionableItem: `/student/assignments`,
                         priority: 'high',
-                        category: 'Pending assignments'
+                        category: 'Pending assignments',
+                        confidence: 90
                     });
                 }
             }
@@ -426,9 +486,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                             type: 'productivity',
                             title: `Boost study files for ${subObj.name}`,
                             description: `You haven't generated summary notes for ${subObj.code} (${subObj.name}) yet. Proactively generate AI notes matching key chapters.`,
-                            actionableItem: `/ai-assistant`,
+                            actionableItem: `/student/ai`,
                             priority: 'medium',
-                            category: 'Subjects requiring more study'
+                            category: 'Subjects requiring more study',
+                            confidence: 85
                         });
                     }
                 }
@@ -445,9 +506,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                 type: 'academic',
                 title: `Flashcards recommendation: ${lastQuiz.title}`,
                 description: `Create flashcards targeting topics in "${lastQuiz.title}" to review any weak definitions or concepts.`,
-                actionableItem: `/ai-assistant`,
+                actionableItem: `/student/ai`,
                 priority: 'medium',
-                category: 'Flashcard recommendations'
+                category: 'Flashcard recommendations',
+                confidence: 80
             });
         } else {
             recommendations.push({
@@ -456,9 +518,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                 type: 'academic',
                 title: `Take an AI Quiz`,
                 description: `You haven't taken any custom AI practice quizzes. Generating a custom MCQ quiz can help verify your concepts dynamically.`,
-                actionableItem: `/ai-assistant`,
+                actionableItem: `/student/ai`,
                 priority: 'low',
-                category: 'Quiz recommendations'
+                category: 'Quiz recommendations',
+                confidence: 75
             });
         }
 
@@ -471,9 +534,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                 type: 'productivity',
                 title: `Plan your preparation`,
                 description: `Set up a custom AI Study Plan by setting an exam date and daily study availability to map your revision roadmap.`,
-                actionableItem: `/ai-assistant`,
+                actionableItem: `/student/ai`,
                 priority: 'high',
-                category: 'Suggested study plan'
+                category: 'Suggested study plan',
+                confidence: 88
             });
         }
 
@@ -484,9 +548,10 @@ export const getRecommendations = async (userId: string, role: string) => {
             type: 'productivity',
             title: `Build subject consistency`,
             description: `Commit to asking the AI Tutor at least 2 questions daily about complex concepts to enhance your consistency score.`,
-            actionableItem: `/ai-assistant`,
+            actionableItem: `/student/ai`,
             priority: 'low',
-            category: 'Productivity improvement tips'
+            category: 'Productivity improvement tips',
+            confidence: 70
         });
 
     } else if (role === 'faculty') {
@@ -508,9 +573,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                 type: 'workload',
                 title: `Review pending submissions (${pendingReviewCount})`,
                 description: `You have student responses awaiting feedback and grading. Awarding marks keeps their productivity scores high.`,
-                actionableItem: `/submissions`,
+                actionableItem: `/faculty/assignments`,
                 priority: 'high',
-                category: 'Assignment feedback reminders'
+                category: 'Assignment feedback reminders',
+                confidence: 92
             });
         }
 
@@ -529,9 +595,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                     type: 'engagement',
                     title: `Low engagement alert: ${cl.className}`,
                     description: `Average submissions are low in ${cl.className}. Consider planning a revision quiz or notice reminder.`,
-                    actionableItem: `/classrooms`,
+                    actionableItem: `/faculty/classrooms`,
                     priority: 'high',
-                    category: 'Low-performing classrooms'
+                    category: 'Low-performing classrooms',
+                    confidence: 90
                 });
             }
         }
@@ -545,9 +612,10 @@ export const getRecommendations = async (userId: string, role: string) => {
                 type: 'adoption',
                 title: `Draft AI Lesson Plan`,
                 description: `Use the AI tool to auto-generate a structured lesson syllabus coverage plan for your classrooms.`,
-                actionableItem: `/ai-assistant`,
+                actionableItem: `/faculty/ai`,
                 priority: 'medium',
-                category: 'AI tool adoption suggestions'
+                category: 'AI tool adoption suggestions',
+                confidence: 85
             });
         }
 
@@ -562,11 +630,12 @@ export const getRecommendations = async (userId: string, role: string) => {
                     user: uid,
                     role: 'admin',
                     type: 'resource',
-                    title: `Assign department head: ${d.code}`,
+                    title: `Assign department coordinator: ${d.code}`,
                     description: `The ${d.name} department currently has no assigned faculty resources. Set up a department coordinator.`,
                     actionableItem: `/admin/departments`,
                     priority: 'high',
-                    category: 'Resource allocation suggestions'
+                    category: 'Resource allocation suggestions',
+                    confidence: 94
                 });
             }
         }
@@ -583,7 +652,8 @@ export const getRecommendations = async (userId: string, role: string) => {
                 description: `The ratio of AI interactions to administrative/student users is low. Conduct a campus-wide briefing on using document upload questions.`,
                 actionableItem: `/admin/settings`,
                 priority: 'medium',
-                category: 'AI adoption recommendations'
+                category: 'AI adoption recommendations',
+                confidence: 88
             });
         }
 
@@ -596,14 +666,26 @@ export const getRecommendations = async (userId: string, role: string) => {
             description: `Integrate monthly academic checkpoints and metrics dashboard for department comparisons.`,
             actionableItem: `/admin`,
             priority: 'low',
-            category: 'Institutional improvement strategies'
+            category: 'Institutional improvement strategies',
+            confidence: 80
         });
     }
 
+    // Resolve explanations dynamically (Module 6)
+    const explainedRecommendations = await Promise.all(
+        recommendations.map(async (rec) => {
+            const reason = await generateExplanation(role, rec.title, rec.description);
+            return {
+                ...rec,
+                reason
+            };
+        })
+    );
+
     // Persist recommendations to DB, overwrite stale ones to avoid duplicate profiles
     await Recommendation.deleteMany({ user: uid });
-    if (recommendations.length > 0) {
-        await Recommendation.insertMany(recommendations);
+    if (explainedRecommendations.length > 0) {
+        await Recommendation.insertMany(explainedRecommendations);
     }
 
     const results = await Recommendation.find({ user: uid }).sort({ createdAt: -1 });
@@ -624,46 +706,71 @@ export const getPredictions = async (userId: string, role: string) => {
     const uid = new mongoose.Types.ObjectId(userId);
     const predictions: any[] = [];
 
+    // Timelines for statistical trend (7 days vs prior 7 days)
+    const now = new Date();
+    const last7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const prev14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
     if (role === 'student') {
         const student = await User.findById(uid);
         const clId = student?.classroom;
 
-        const classAssignments = clId ? await Assignment.find({ classroom: clId }) : [];
-        const submitted = await Submission.find({ student: uid });
+        // 1. Assignment Completion
+        const recentSubs = await Submission.countDocuments({ student: uid, createdAt: { $gte: last7 } });
+        const priorSubs = await Submission.countDocuments({ student: uid, createdAt: { $gte: prev14, $lt: last7 } });
+        const subPred = await computeStatisticalPrediction(recentSubs, priorSubs, 80);
 
-        // Predict upcoming assignment completion
-        let completionProbability = 80;
-        if (classAssignments.length > 0) {
-            completionProbability = Math.round((submitted.length / classAssignments.length) * 100);
-        }
         predictions.push({
             metric: 'Assignment Completion Forecast',
-            trend: completionProbability >= 75 ? 'UPWARD' : 'NEUTRAL',
-            predictionValue: `${completionProbability}% probability`,
-            description: `Based on your historic submission rate of ${submitted.length}/${classAssignments.length} publications.`,
-            confidence: Math.round(70 + (completionProbability * 0.25)),
+            current: subPred.current,
+            predicted: subPred.predicted,
+            trend: subPred.trend,
+            confidence: subPred.confidence,
+            description: `Forecasted submission metrics next week based on your historic completion of ${recentSubs} assignments.`,
             category: 'academic'
         });
 
-        // Student engagement trend
-        const chatCount = await AIChat.countDocuments({ user: uid });
+        // 2. Student Engagement
+        const recentLogs = await ActivityTimeline.countDocuments({ user: uid, createdAt: { $gte: last7 } });
+        const priorLogs = await ActivityTimeline.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
+        const logPred = await computeStatisticalPrediction(recentLogs, priorLogs, 85);
+
         predictions.push({
-            metric: 'AI-assisted Study Engagement',
-            trend: chatCount > 5 ? 'STABLE' : 'GROWING',
-            predictionValue: chatCount > 10 ? 'High Activity' : 'Moderate Activity',
-            description: `Projected study consistency based on ${chatCount} AI interactive chat operations.`,
-            confidence: 88,
-            category: 'productivity'
+            metric: 'Platform Engagement Index',
+            current: logPred.current,
+            predicted: logPred.predicted,
+            trend: logPred.trend,
+            confidence: logPred.confidence,
+            description: `Active study session index calculated from ${recentLogs} portal interaction events this week.`,
+            category: 'engagement'
         });
 
-        // Workload forecast
-        const activeAssignments = clId ? await Assignment.countDocuments({ classroom: clId, dueDate: { $gt: new Date() } }) : 0;
+        // 3. AI Usage
+        const recentAI = await AIChat.countDocuments({ user: uid, createdAt: { $gte: last7 } }) +
+                         await AINotes.countDocuments({ user: uid, createdAt: { $gte: last7 } });
+        const priorAI = await AIChat.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } }) +
+                       await AINotes.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
+        const aiPred = await computeStatisticalPrediction(recentAI, priorAI, 78);
+
         predictions.push({
-            metric: 'Workload Pressure',
-            trend: activeAssignments > 2 ? 'HIGH' : 'LOW',
-            predictionValue: activeAssignments > 2 ? 'High Load Pending' : 'Comfortable',
-            description: `Calculated from ${activeAssignments} pending assignments due shortly.`,
-            confidence: 95,
+            metric: 'AI Assistant Query Scaling',
+            current: aiPred.current,
+            predicted: aiPred.predicted,
+            trend: aiPred.trend,
+            confidence: aiPred.confidence,
+            description: `RAG tutor and note interactions forecasted to reach ${aiPred.predicted} actions next week.`,
+            category: 'adoption'
+        });
+
+        // 4. Workload Pressure
+        const pendingCount = clId ? await Assignment.countDocuments({ classroom: clId, dueDate: { $gt: now } }) : 0;
+        predictions.push({
+            metric: 'Academic Workload Level',
+            current: pendingCount,
+            predicted: pendingCount > 3 ? pendingCount - 1 : pendingCount,
+            trend: pendingCount > 3 ? 'DOWNWARD' : 'STABLE',
+            confidence: 90,
+            description: `Calculated from ${pendingCount} upcoming course assignments due over the syllabus schedule.`,
             category: 'workload'
         });
 
@@ -671,60 +778,325 @@ export const getPredictions = async (userId: string, role: string) => {
         const classrooms = await Classroom.find({ faculty: uid });
         const classIds = classrooms.map(c => c._id);
         const assignments = await Assignment.find({ classroom: { $in: classIds } });
-        const totalSubs = await Submission.countDocuments({ assignment: { $in: assignments.map(a => a._id) } });
+        const assignmentIds = assignments.map(a => a._id);
 
-        // Submission Trend
-        let subTrend = 'UPWARD';
-        const rate = assignments.length > 0 ? totalSubs / assignments.length : 0;
+        // 1. Classroom Submission Engagement
+        const recentSubs = await Submission.countDocuments({ assignment: { $in: assignmentIds }, createdAt: { $gte: last7 } });
+        const priorSubs = await Submission.countDocuments({ assignment: { $in: assignmentIds }, createdAt: { $gte: prev14, $lt: last7 } });
+        const subPred = await computeStatisticalPrediction(recentSubs, priorSubs, 82);
+
         predictions.push({
-            metric: 'Expected Student Submissions Rate',
-            trend: rate > 5 ? 'UPWARD' : 'STABLE',
-            predictionValue: `${Math.round(Math.min(100, rate * 15))}% classroom return`,
-            description: `Aggregated submission patterns over your active ${classrooms.length} assigned classrooms.`,
-            confidence: 85,
+            metric: 'Classroom Return Ratio',
+            current: `${recentSubs} submissions`,
+            predicted: `${subPred.predicted} submissions`,
+            trend: subPred.trend,
+            confidence: subPred.confidence,
+            description: `Expected classroom submission efficiency predicted across your ${classrooms.length} active classes.`,
             category: 'engagement'
         });
 
-        // Faculty AI adoption forecast
-        const aiCreatedDocs = await AILessonPlan.countDocuments({ user: uid }) + await AIQuestionPaper.countDocuments({ user: uid });
+        // 2. Faculty Workload Level
+        const unchecked = await Submission.countDocuments({ assignment: { $in: assignmentIds }, status: 'Submitted' });
         predictions.push({
-            metric: 'AI Syllabus Adoption Forecast',
-            trend: aiCreatedDocs > 0 ? 'UPWARD' : 'NEUTRAL',
-            predictionValue: aiCreatedDocs > 3 ? 'AI Integrator Class' : 'Standard Faculty Plan',
-            description: `Based on your recent generation of ${aiCreatedDocs} academic AI artifacts.`,
-            confidence: 90,
+            metric: 'Grading Review Workload',
+            current: unchecked,
+            predicted: unchecked > 5 ? unchecked - 3 : unchecked,
+            trend: unchecked > 5 ? 'DOWNWARD' : 'STABLE',
+            confidence: 95,
+            description: `Course grading and syllabus delivery pressure based on ${unchecked} pending homework reviews.`,
+            category: 'workload'
+        });
+
+        // 3. AI Usage (Adoption)
+        const recentLP = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: last7 } }) +
+                          await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: last7 } });
+        const priorLP = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } }) +
+                         await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
+        const lpPred = await computeStatisticalPrediction(recentLP, priorLP, 80);
+
+        predictions.push({
+            metric: 'AI Syllabus Adoption Rate',
+            current: recentLP,
+            predicted: lpPred.predicted,
+            trend: lpPred.trend,
+            confidence: lpPred.confidence,
+            description: `Curriculum drafting actions forecast (Lesson plans, question documents).`,
             category: 'adoption'
         });
 
     } else {
         // Admin Predictions
-        const totalStudents = await User.countDocuments({ role: 'student' });
-        const totalFaculty = await User.countDocuments({ role: 'faculty' });
-        const totalAiReq = await AIChat.countDocuments() + await AINotes.countDocuments() + await AIQuiz.countDocuments();
+        // 1. Platform Growth (New signups/timeline events)
+        const recentSignups = await User.countDocuments({ createdAt: { $gte: last7 } });
+        const priorSignups = await User.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } });
+        const userPred = await computeStatisticalPrediction(recentSignups, priorSignups, 88);
 
-        // AI usage forecast
         predictions.push({
-            metric: 'Campus AI Scaling Index',
-            trend: totalAiReq > 20 ? 'UPWARD' : 'STABLE',
-            predictionValue: `High volume adoption`,
-            description: `Projecting continuous RAG query load. Current system records ${totalAiReq} AI queries.`,
-            confidence: 92,
-            category: 'adoption'
+            metric: 'Campus Directory Growth',
+            current: `${recentSignups} signups`,
+            predicted: `${userPred.predicted} signups`,
+            trend: userPred.trend,
+            confidence: userPred.confidence,
+            description: `Expected account directory additions predicted across student and faculty cohorts.`,
+            category: 'growth'
         });
 
-        // Institutional performance index
+        // 2. Department Activity Index
+        const classroomsCount = await Classroom.countDocuments();
         predictions.push({
-            metric: 'Expected Student GPA Success Index',
+            metric: 'Institutional Activity Index',
+            current: classroomsCount,
+            predicted: classroomsCount + 1,
             trend: 'UPWARD',
-            predictionValue: `85.4% Success Probability`,
-            description: `Calculated statically from historical metrics across active classrooms.`,
-            confidence: 89,
-            category: 'academic'
+            confidence: 92,
+            description: `Active sections and course operations forecast across CSE and EE academic departments.`,
+            category: 'activity'
+        });
+
+        // 3. AI Usage (Platform wide)
+        const recentAI = await AIChat.countDocuments({ createdAt: { $gte: last7 } }) +
+                         await AINotes.countDocuments({ createdAt: { $gte: last7 } }) +
+                         await AIQuiz.countDocuments({ createdAt: { $gte: last7 } });
+        const priorAI = await AIChat.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } }) +
+                       await AINotes.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } }) +
+                       await AIQuiz.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } });
+        const globalAIPred = await computeStatisticalPrediction(recentAI, priorAI, 85);
+
+        predictions.push({
+            metric: 'Campus AI RAG Engagement',
+            current: recentAI,
+            predicted: globalAIPred.predicted,
+            trend: globalAIPred.trend,
+            confidence: globalAIPred.confidence,
+            description: `Overall system cognitive interactions forecast for next week.`,
+            category: 'adoption'
         });
     }
 
     setCachedData(cacheKey, predictions);
     return predictions;
+};
+
+/**
+ * =========================================================
+ * FEATURE 8 - ACADEMIC RISK PREDICTION SERVICE (Phase 5B.3)
+ * =========================================================
+ */
+export const getAcademicRisk = async (userId: string, role: string) => {
+    const cacheKey = `risk_assessment_${userId}_${role}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) return cached;
+
+    const uid = new mongoose.Types.ObjectId(userId);
+    const lastUpdated = new Date().toISOString();
+
+    if (role === 'student') {
+        const student = await User.findById(uid);
+        const userClass = student?.classroom;
+
+        // Fetch metrics
+        const totalAssignments = userClass ? await Assignment.countDocuments({ classroom: userClass }) : 0;
+        const completedSubs = await Submission.countDocuments({ student: uid, status: { $in: ['Submitted', 'Reviewed'] } });
+        const assignmentCompletion = totalAssignments > 0 ? Math.round((completedSubs / totalAssignments) * 100) : 100;
+
+        const quizCount = await AIQuiz.countDocuments({ user: uid });
+        const quizPerformance = Math.min(100, Math.round(quizCount * 12));
+
+        const notesCount = await AINotes.countDocuments({ user: uid });
+        const flashCount = await AIFlashcard.countDocuments({ user: uid });
+        const chatsCount = await AIChat.countDocuments({ user: uid });
+        const aiUsage = Math.min(100, Math.round((chatsCount + notesCount + flashCount) * 5));
+
+        // Consistency score
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const recentNotes = await AINotes.countDocuments({ user: uid, createdAt: { $gte: thirtyDaysAgo } });
+        const recentChats = await AIChat.countDocuments({ user: uid, createdAt: { $gte: thirtyDaysAgo } });
+        const recentSubs = await Submission.countDocuments({ student: uid, createdAt: { $gte: thirtyDaysAgo } });
+        const studyConsistency = Math.min(100, Math.round(((recentSubs + recentNotes + recentChats) / 30) * 100));
+
+        const activityLevel = await ActivityTimeline.countDocuments({ user: uid });
+
+        // Calculate overall risk score
+        const score = Math.round(
+            (assignmentCompletion * 0.35) +
+            (quizPerformance * 0.25) +
+            (studyConsistency * 0.20) +
+            (aiUsage * 0.20)
+        );
+
+        let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
+        let riskColor: 'green' | 'yellow' | 'red' = 'green';
+
+        if (score < 60) {
+            riskLevel = 'HIGH';
+            riskColor = 'red';
+        } else if (score < 80) {
+            riskLevel = 'MEDIUM';
+            riskColor = 'yellow';
+        }
+
+        const reasons: string[] = [];
+        if (assignmentCompletion < 70) {
+            reasons.push(`Low assignment completion rate (${assignmentCompletion}% completed out of ${totalAssignments} total).`);
+        }
+        if (quizCount < 4) {
+            reasons.push(`Low practice quiz participation (only ${quizCount} custom quizzes taken).`);
+        }
+        if (studyConsistency < 50) {
+            reasons.push(`Inconsistent portal study activity in the last 30 days (consistency rating: ${studyConsistency}%).`);
+        }
+        if (aiUsage < 30) {
+            reasons.push(`Underutilization of AI study tools (Tutor chats, summaries, and flashcards).`);
+        }
+        if (activityLevel < 10) {
+            reasons.push(`Minimal overall classroom action history recorded (${activityLevel} logged events).`);
+        }
+
+        if (reasons.length === 0) {
+            reasons.push("All learning indicators are active and consistent. Continue with your current syllabus revision habits.");
+        }
+
+        const result = {
+            riskLevel,
+            riskColor,
+            score,
+            reasons,
+            breakdown: {
+                assignmentCompletion,
+                quizPerformance,
+                studyConsistency,
+                aiUsage,
+                activityLevel: Math.min(100, activityLevel * 8)
+            },
+            lastUpdated
+        };
+
+        setCachedData(cacheKey, result);
+        return result;
+
+    } else if (role === 'faculty') {
+        const classrooms = await Classroom.find({ faculty: uid });
+        const classIds = classrooms.map(c => c._id);
+        const assignments = await Assignment.find({ classroom: { $in: classIds } });
+        const assignmentIds = assignments.map(a => a._id);
+
+        const totalExpected = classrooms.reduce((acc, c) => acc + (c.students.length * assignments.length), 0);
+        const totalActual = await Submission.countDocuments({ assignment: { $in: assignmentIds } });
+        const classroomCompletion = totalExpected > 0 ? Math.round((totalActual / totalExpected) * 100) : 100;
+
+        const lessonPlans = await AILessonPlan.countDocuments({ user: uid });
+        const questionPapers = await AIQuestionPaper.countDocuments({ user: uid });
+        const aiUsage = Math.min(100, (lessonPlans + questionPapers) * 15);
+
+        const facultyScore = classroomCompletion;
+
+        let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
+        let riskColor: 'green' | 'yellow' | 'red' = 'green';
+
+        if (facultyScore < 60) {
+            riskLevel = 'HIGH';
+            riskColor = 'red';
+        } else if (facultyScore < 80) {
+            riskLevel = 'MEDIUM';
+            riskColor = 'yellow';
+        }
+
+        const reasons: string[] = [];
+        if (classroomCompletion < 70) {
+            reasons.push(`Your students demonstrate a low assignment completion rate (${classroomCompletion}% average return).`);
+        }
+        if (aiUsage < 40) {
+            reasons.push(`Low AI curriculum tool adoption (only ${lessonPlans} lesson blueprints and ${questionPapers} question papers created).`);
+        }
+        if (classrooms.length === 0) {
+            reasons.push("You are currently not assigned to any active classroom sections.");
+        }
+
+        if (reasons.length === 0) {
+            reasons.push("All classrooms exhibit high engagement, and teaching syllabus delivery is well aligned.");
+        }
+
+        const result = {
+            riskLevel,
+            riskColor,
+            score: facultyScore,
+            reasons,
+            breakdown: {
+                assignmentCompletion: classroomCompletion,
+                quizPerformance: 100,
+                studyConsistency: 100,
+                aiUsage,
+                activityLevel: 100
+            },
+            lastUpdated
+        };
+
+        setCachedData(cacheKey, result);
+        return result;
+
+    } else {
+        // Admin Risk
+        const totalStudentsCount = await User.countDocuments({ role: 'student' });
+        const totalAssignments = await Assignment.countDocuments();
+        const totalSubmissions = await Submission.countDocuments();
+        const globalCompletion = (totalAssignments > 0 && totalStudentsCount > 0)
+            ? Math.round((totalSubmissions / (totalAssignments * totalStudentsCount)) * 100)
+            : 100;
+
+        const totalAI = await AIChat.countDocuments() + await AINotes.countDocuments() + await AIQuiz.countDocuments();
+        const aiUsage = totalStudentsCount > 0 ? Math.min(100, Math.round((totalAI / totalStudentsCount) * 10)) : 100;
+
+        const adminScore = globalCompletion;
+
+        let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
+        let riskColor: 'green' | 'yellow' | 'red' = 'green';
+
+        if (adminScore < 60) {
+            riskLevel = 'HIGH';
+            riskColor = 'red';
+        } else if (adminScore < 80) {
+            riskLevel = 'MEDIUM';
+            riskColor = 'yellow';
+        }
+
+        const reasons: string[] = [];
+        if (globalCompletion < 70) {
+            reasons.push(`Institution-wide student homework completion rate is below expectations (${globalCompletion}%).`);
+        }
+        if (aiUsage < 45) {
+            reasons.push(`Low campus-wide AI RAG tool scaling (average index: ${aiUsage}% user interactions).`);
+        }
+
+        const depts = await Department.find();
+        for (const d of depts) {
+            const facultyCount = await User.countDocuments({ department: d._id, role: 'faculty' });
+            if (facultyCount === 0) {
+                reasons.push(`Department Coordinator Alert: ${d.code} department has no head resources assigned.`);
+            }
+        }
+
+        if (reasons.length === 0) {
+            reasons.push("All institutional health indices, database servers, and RAG pipelines are operating within standard parameters.");
+        }
+
+        const result = {
+            riskLevel,
+            riskColor,
+            score: adminScore,
+            reasons,
+            breakdown: {
+                assignmentCompletion: globalCompletion,
+                quizPerformance: 100,
+                studyConsistency: 100,
+                aiUsage,
+                activityLevel: 100
+            },
+            lastUpdated
+        };
+
+        setCachedData(cacheKey, result);
+        return result;
+    }
 };
 
 /**

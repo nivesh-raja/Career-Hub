@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api.js';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card.js';
 import { Badge } from '../ui/Badge.js';
 import { Button } from '../ui/Button.js';
@@ -241,6 +242,36 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
         staleTime: 30000
     });
 
+    // 6. AI Recommendations (Phase 5B.3)
+    const { data: recsData, isLoading: isRecsLoading } = useQuery({
+        queryKey: ['aiRecommendations', role],
+        queryFn: async () => {
+            const response = await api.get('/intelligence/recommendations');
+            return response.data;
+        },
+        staleTime: 30000
+    });
+
+    // 7. Predictive Intelligence (Phase 5B.3)
+    const { data: predsData, isLoading: isPredsLoading } = useQuery({
+        queryKey: ['aiPredictions', role],
+        queryFn: async () => {
+            const response = await api.get('/intelligence/predictions');
+            return response.data;
+        },
+        staleTime: 30000
+    });
+
+    // 8. Academic Risk Assessment (Phase 5B.3)
+    const { data: riskData, isLoading: isRiskLoading } = useQuery({
+        queryKey: ['aiRiskAssessment', role],
+        queryFn: async () => {
+            const response = await api.get('/intelligence/risk');
+            return response.data;
+        },
+        staleTime: 30000
+    });
+
     const handleMarkRead = async (id: string) => {
         try {
             await api.put(`/intelligence/notifications/${id}/read`);
@@ -332,6 +363,9 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
 
     const tabs = [
         { id: 'overview', label: 'Hub Dashboard' },
+        { id: 'recommendations', label: 'AI Recommendations' },
+        { id: 'predictions', label: 'Predictions' },
+        { id: 'risk', label: 'Risk Assessment' },
         { id: 'alerts', label: 'Smart Alerts', badge: smartAlerts.filter((a: any) => a.severity === 'critical').length },
         { id: 'notifications', label: 'Alerts Center', badge: notificationsData?.unreadCount },
         { id: 'timeline', label: 'Timeline' },
@@ -544,6 +578,340 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* ─── TAB: AI RECOMMENDATIONS ────────────────────────────────── */}
+            {activeTab === 'recommendations' && (
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
+                            <Sparkles className="h-4 w-4 animate-pulse" /> AI Academic Recommendations
+                        </CardTitle>
+                        <CardDescription>
+                            Personalized guidance for optimized learning outcomes explained by Gemini AI.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isRecsLoading ? (
+                            <div className="space-y-4 py-6">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="h-28 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {(recsData?.recommendations || []).map((rec: any, idx: number) => (
+                                    <Card key={rec._id || idx} className="bg-gradient-to-br from-white/30 to-slate-50/20 dark:from-dark-card/20 dark:to-dark-surface/10 border border-border/60 dark:border-dark-border/40 relative overflow-hidden shadow-subtle flex flex-col justify-between">
+                                        <CardHeader className="pb-2">
+                                            <div className="flex justify-between items-center gap-2">
+                                                <Badge variant="primary" className="text-[8px] uppercase tracking-wider select-none">
+                                                    {rec.category || rec.type}
+                                                </Badge>
+                                                <Badge className={`text-[8px] uppercase font-bold py-0.5 border ${getPriorityBadgeColors(rec.priority)}`}>
+                                                    {rec.priority}
+                                                </Badge>
+                                            </div>
+                                            <CardTitle className="text-xs font-bold text-text-primary dark:text-gray-200 mt-2 font-serif">
+                                                {rec.title}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4 pt-0 text-xs">
+                                            <p className="text-[11px] text-text-secondary dark:text-slate-450 leading-relaxed">
+                                                {rec.description}
+                                            </p>
+                                            
+                                            {/* Gemini Explanation Reason (Module 6) */}
+                                            {rec.reason && (
+                                                <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg flex gap-2 items-start">
+                                                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
+                                                    <div>
+                                                        <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 block uppercase mb-0.5 select-none">Gemini Evaluation</span>
+                                                        <p className="text-[10px] text-text-secondary dark:text-slate-300 italic font-serif leading-relaxed">
+                                                            "{rec.reason}"
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Confidence gauge (Module 8) */}
+                                            <div className="flex items-center justify-between pt-1 text-[10px]">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-text-secondary dark:text-slate-500">Confidence Index:</span>
+                                                    <span className="font-bold text-primary dark:text-primary-300">{rec.confidence || 80}%</span>
+                                                </div>
+                                                <div className="w-24 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                    <div className="bg-primary dark:bg-primary-400 h-full rounded-full" style={{ width: `${rec.confidence || 80}%` }} />
+                                                </div>
+                                            </div>
+
+                                            {rec.actionableItem && (
+                                                <a
+                                                    href={rec.actionableItem}
+                                                    className="inline-flex items-center gap-1 text-[10px] text-primary dark:text-primary-300 font-bold hover:underline select-none pt-2"
+                                                >
+                                                    Execute recommendation directive →
+                                                </a>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                                {(recsData?.recommendations || []).length === 0 && (
+                                    <div className="col-span-2 py-12 text-center text-xs text-text-secondary dark:text-slate-400 italic">
+                                        No recommendations active currently. Keep updating study logs to seed intelligence.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* ─── TAB: PREDICTIONS ───────────────────────────────────────── */}
+            {activeTab === 'predictions' && (
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
+                            <TrendingUp className="h-4 w-4" /> Predictive Intelligence & Trend Forecasts
+                        </CardTitle>
+                        <CardDescription>
+                            Statistical forecasts computed via MongoDB aggregations of historical timeline activity.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {isPredsLoading ? (
+                            <div className="space-y-4 py-6">
+                                <div className="h-48 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {[...Array(3)].map((_, i) => <div key={i} className="h-28 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />)}
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Recharts Trend Chart (Module 8) */}
+                                {(predsData?.predictions || []).length > 0 && (
+                                    <div className="bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 p-4 rounded-xl">
+                                        <h4 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none mb-4">
+                                            Current vs Predicted Statistical Activity Comparison
+                                        </h4>
+                                        <div className="h-56">
+                                            {(() => {
+                                                const chartData = (predsData.predictions || []).map((pred: any) => ({
+                                                    name: pred.metric.replace(' Forecast', '').replace(' Index', '').replace(' Query Scaling', ''),
+                                                    Current: typeof pred.current === 'number' ? pred.current : parseFloat(pred.current) || 1,
+                                                    Predicted: typeof pred.predicted === 'number' ? pred.predicted : parseFloat(pred.predicted) || 1
+                                                }));
+
+                                                return (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                                                            <defs>
+                                                                <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                                </linearGradient>
+                                                                <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#64748b" opacity={0.15} />
+                                                            <XAxis dataKey="name" stroke="#64748b" fontSize={9} />
+                                                            <YAxis stroke="#64748b" fontSize={9} />
+                                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', fontSize: 10 }} />
+                                                            <Legend wrapperStyle={{ fontSize: 9 }} />
+                                                            <Area name="Current Action Volume" type="monotone" dataKey="Current" stroke="#3b82f6" fillOpacity={1} fill="url(#colorCurrent)" strokeWidth={2} />
+                                                            <Area name="Forecasted Output" type="monotone" dataKey="Predicted" stroke="#10b981" fillOpacity={1} fill="url(#colorPredicted)" strokeWidth={2} strokeDasharray="5 5" />
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Prediction Cards (Module 8) */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {(predsData?.predictions || []).map((pred: any, idx: number) => (
+                                        <Card key={idx} className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border hover:shadow-subtle transition-all">
+                                            <CardContent className="p-4 space-y-3 text-xs flex flex-col justify-between h-full min-h-[140px]">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="font-bold text-text-primary dark:text-gray-300 truncate">{pred.metric}</span>
+                                                    <Badge className={`text-[9px] font-bold py-0.5 ${pred.trend === 'UPWARD' || pred.trend === 'UP'
+                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                                        : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                                                        }`}>
+                                                        {pred.trend}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-baseline justify-between pt-1">
+                                                    <div>
+                                                        <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Predicted Value</span>
+                                                        <span className="text-md font-extrabold text-primary dark:text-primary-300">{pred.predicted}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Current Value</span>
+                                                        <span className="text-xs font-bold text-text-primary dark:text-slate-355">{pred.current}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Confidence Indicator */}
+                                                <div className="space-y-1">
+                                                    <div className="flex justify-between items-center text-[9px] text-text-secondary dark:text-slate-500 font-semibold">
+                                                        <span>Statistical Confidence</span>
+                                                        <span>{pred.confidence}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                        <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${pred.confidence}%` }} />
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[10px] text-text-secondary dark:text-slate-400 leading-relaxed pt-1 border-t border-border/20">
+                                                    {pred.description}
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                    {(predsData?.predictions || []).length === 0 && (
+                                        <div className="col-span-3 py-12 text-center text-xs text-text-secondary dark:text-slate-400 italic">
+                                            Predictive analytics require historic student engagement logs to calculate ratios.
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* ─── TAB: RISK ASSESSMENT ───────────────────────────────────── */}
+            {activeTab === 'risk' && (
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
+                    <CardHeader>
+                        <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
+                            <Shield className="h-4 w-4" /> Academic Risk Assessment & Early Intervention
+                        </CardTitle>
+                        <CardDescription>
+                            Predictive risk index calculated from assignment submission rates, consistency scores, and AI activity.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {isRiskLoading ? (
+                            <div className="space-y-4 py-6 text-center text-xs text-text-secondary">
+                                <RefreshCw className="h-8 w-8 mx-auto mb-3 text-amber-500 animate-spin" />
+                                Assessing academic risk indicators and compiling details...
+                            </div>
+                        ) : (
+                            (() => {
+                                const r = riskData?.risk || {};
+                                const breakdown = r.breakdown || {};
+
+                                return (
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Risk Status Indicator */}
+                                        <Card className="bg-gradient-to-br from-white/30 to-slate-50/20 dark:from-dark-card/20 dark:to-dark-surface/10 border border-border/65 p-6 flex flex-col justify-between items-center text-center">
+                                            <div className="space-y-2">
+                                                <span className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none">
+                                                    Academic Risk Classification
+                                                </span>
+                                                <div className="pt-2">
+                                                    <span className={`px-4 py-1.5 rounded-full border text-xs font-extrabold shadow-sm ${getRiskBadgeClasses(r.riskLevel)}`}>
+                                                        {r.riskLevel || 'LOW'} RISK
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Score gauge */}
+                                            <div className="my-6 relative flex items-center justify-center">
+                                                <div className="h-28 w-28 rounded-full border-4 border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center shadow-inner relative overflow-hidden">
+                                                    <span className="text-[10px] text-text-secondary dark:text-slate-500 font-bold uppercase select-none">Score</span>
+                                                    <h3 className={`text-3xl font-black font-serif ${r.riskColor === 'red' ? 'text-rose-500' : r.riskColor === 'yellow' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                        {r.score || 100}
+                                                    </h3>
+                                                    {/* Animated glow */}
+                                                    <div className={`absolute inset-0 bg-${r.riskColor}-550/5 animate-pulse`} />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-1 w-full">
+                                                <span className="text-[9px] text-text-secondary dark:text-slate-500 font-semibold block">Academic Health Rating (0 - 100)</span>
+                                                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                                    <div className={`h-full rounded-full ${r.riskColor === 'red' ? 'bg-rose-500' : r.riskColor === 'yellow' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${r.score || 100}%` }} />
+                                                </div>
+                                            </div>
+                                        </Card>
+
+                                        {/* Risk Reasons (Module 5) */}
+                                        <Card className="lg:col-span-2 bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border p-6 space-y-4">
+                                            <h4 className="text-xs font-bold text-text-primary dark:text-slate-350 uppercase tracking-wider select-none border-b border-border/20 pb-2">
+                                                Performance Indicator Analysis & Diagnostics
+                                            </h4>
+                                            
+                                            <div className="space-y-3">
+                                                {(r.reasons || []).map((reason: string, index: number) => (
+                                                    <div key={index} className="flex gap-2.5 items-start text-xs">
+                                                        <div className="shrink-0 mt-0.5">
+                                                            {r.riskLevel === 'HIGH' ? (
+                                                                <AlertTriangle className="h-4 w-4 text-rose-500 animate-pulse" />
+                                                            ) : r.riskLevel === 'MEDIUM' ? (
+                                                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                                            ) : (
+                                                                <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] text-text-secondary dark:text-slate-350 leading-relaxed">
+                                                            {reason}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Metrics breakdown */}
+                                            <div className="pt-4 border-t border-border/20 space-y-3">
+                                                <h5 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none">
+                                                    Risk Factors Breakdown
+                                                </h5>
+                                                
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
+                                                    <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
+                                                        <span className="text-text-secondary dark:text-slate-505 block font-semibold">Submissions</span>
+                                                        <span className="font-extrabold text-xs block text-text-primary dark:text-gray-300">{breakdown.assignmentCompletion ?? 0}%</span>
+                                                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-1">
+                                                            <div className="bg-primary h-full" style={{ width: `${breakdown.assignmentCompletion ?? 0}%` }} />
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
+                                                        <span className="text-text-secondary dark:text-slate-505 block font-semibold">Quiz Mastery</span>
+                                                        <span className="font-extrabold text-xs block text-text-primary dark:text-gray-300">{breakdown.quizPerformance ?? 0}%</span>
+                                                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-1">
+                                                            <div className="bg-primary h-full" style={{ width: `${breakdown.quizPerformance ?? 0}%` }} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
+                                                        <span className="text-text-secondary dark:text-slate-505 block font-semibold">Consistency</span>
+                                                        <span className="font-extrabold text-xs block text-text-primary dark:text-gray-300">{breakdown.studyConsistency ?? 0}%</span>
+                                                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-1">
+                                                            <div className="bg-primary h-full" style={{ width: `${breakdown.studyConsistency ?? 0}%` }} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
+                                                        <span className="text-text-secondary dark:text-slate-505 block font-semibold">AI Assistant</span>
+                                                        <span className="font-extrabold text-xs block text-text-primary dark:text-gray-300">{breakdown.aiUsage ?? 0}%</span>
+                                                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-1">
+                                                            <div className="bg-primary h-full" style={{ width: `${breakdown.aiUsage ?? 0}%` }} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </div>
+                                );
+                            })()
+                        )}
+                    </CardContent>
+                </Card>
             )}
 
             {/* ─── TAB: SMART ALERTS ──────────────────────────────────────── */}

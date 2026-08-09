@@ -11,7 +11,8 @@ import {
     getNotifications,
     markNotificationRead,
     markAllNotificationsRead,
-    deleteNotification
+    deleteNotification,
+    getAcademicRisk
 } from '../services/intelligence.service.js';
 
 /**
@@ -211,3 +212,82 @@ export const removeNotification = async (req: AuthenticatedRequest, res: Respons
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+/**
+ * @desc    Get user recommendations (AI Recommendation Engine) (Module 7)
+ * @route   GET /api/intelligence/recommendations
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getUserRecommendations = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role;
+
+        const recommendations = await getRecommendations(userId, role);
+
+        res.status(200).json({
+            success: true,
+            recommendations
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @desc    Get user predictions (Predictive Intelligence) (Module 7)
+ * @route   GET /api/intelligence/predictions
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getUserPredictions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role;
+
+        const predictions = await getPredictions(userId, role);
+
+        res.status(200).json({
+            success: true,
+            predictions
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * @desc    Get academic risk assessment (Module 7)
+ * @route   GET /api/intelligence/risk
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getUserRiskAssessment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role;
+
+        const risk = await getAcademicRisk(userId, role);
+
+        res.status(200).json({
+            success: true,
+            risk
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

@@ -15,11 +15,16 @@ export const getMaterials = async (req: AuthenticatedRequest, res: Response): Pr
     if (category) filter.category = category;
 
     if (req.user?.role === 'student') {
-      if (!req.user.classroom) {
+      let classroomId = req.user.classroom;
+      if (!classroomId) {
+        const studentClassroom = await Classroom.findOne({ students: req.user._id });
+        classroomId = studentClassroom?._id;
+      }
+      if (!classroomId) {
         res.status(200).json({ success: true, materials: [] });
         return;
       }
-      filter.classroom = req.user.classroom;
+      filter.classroom = classroomId;
     } else if (req.user?.role === 'faculty') {
       filter.faculty = req.user._id;
     }
