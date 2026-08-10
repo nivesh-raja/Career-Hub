@@ -68,13 +68,21 @@ async function run() {
             console.log(`        Explanation: "${r.reason}"`);
         });
 
-        // 2. Predictions
-        console.log('\n📊 Calculating trend predictions...');
-        const preds = await getPredictions(userId, role);
+        // 2. Predictions (Phase 5B.3B)
+        console.log('\n📊 Calculating trend predictions (7_DAYS horizon)...');
+        const preds = await getPredictions(userId, role, '7_DAYS');
         console.log(`✓ Generated ${preds.length} prediction variables:`);
         preds.forEach((p: any, i: number) => {
-            console.log(`  [Pred ${i + 1}] Metric: "${p.metric}"`);
-            console.log(`         Current: ${p.current} | Predicted: ${p.predicted} | Trend: ${p.trend} | Confidence: ${p.confidence}%`);
+            console.log(`  [Pred ${i + 1}] Metric: "${p.metric}" (${p.category})`);
+            console.log(`         Current: ${p.currentValue} | Predicted: ${p.predictedValue} | Status: ${p.predictionStatus} | Trend: ${p.trend} | Method: ${p.method} | Horizon: ${p.predictionHorizon}`);
+            console.log(`         Historical points: ${JSON.stringify(p.historicalPoints)}`);
+        });
+
+        console.log('\n📊 Calculating trend predictions (30_DAYS horizon)...');
+        const preds30 = await getPredictions(userId, role, '30_DAYS');
+        console.log(`✓ Generated ${preds30.length} prediction variables for 30_DAYS:`);
+        preds30.slice(0, 2).forEach((p: any, i: number) => {
+            console.log(`  [Pred 30D ${i + 1}] Metric: "${p.metric}" | Current: ${p.currentValue} | Predicted: ${p.predictedValue} | Horizon: ${p.predictionHorizon}`);
         });
 
         // 3. Academic Risk

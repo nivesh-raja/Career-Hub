@@ -416,11 +416,11 @@ The explanation must be written in the second person ("Your recent activity...",
     }
 }
 
-// Helper to compute statistical prediction (Module 4)
+// Helper to compute statistical prediction (Module 4) — LEGACY, kept for backward compat in dashboard
 const computeStatisticalPrediction = (
     currentCount: number,
     priorCount: number,
-    baseConfidence: number = 80
+    _baseConfidence: number = 80
 ) => {
     let trend: 'UPWARD' | 'DOWNWARD' | 'STABLE' = 'STABLE';
     if (currentCount > priorCount) trend = 'UPWARD';
@@ -429,10 +429,7 @@ const computeStatisticalPrediction = (
     const growth = priorCount > 0 ? (currentCount / priorCount) : 1;
     const predictedVal = Math.round(currentCount * growth);
 
-    const diff = Math.abs(currentCount - priorCount);
-    const confidence = Math.min(95, Math.max(70, baseConfidence + Math.min(15, diff * 3)));
-
-    return { current: currentCount, predicted: predictedVal, trend, confidence };
+    return { current: currentCount, predicted: predictedVal, trend };
 };
 
 /**
@@ -541,18 +538,21 @@ export const getRecommendations = async (userId: string, role: string) => {
             });
         }
 
-        // 5. Default Productivity Tip
-        recommendations.push({
-            user: uid,
-            role: 'student',
-            type: 'productivity',
-            title: `Build subject consistency`,
-            description: `Commit to asking the AI Tutor at least 2 questions daily about complex concepts to enhance your consistency score.`,
-            actionableItem: `/student/ai`,
-            priority: 'low',
-            category: 'Productivity improvement tips',
-            confidence: 70
-        });
+        // 5. Productivity Tip based on AI Usage
+        const aiChats = await AIChat.countDocuments({ user: uid });
+        if (aiChats < 5) {
+            recommendations.push({
+                user: uid,
+                role: 'student',
+                type: 'productivity',
+                title: `Build subject consistency`,
+                description: `Commit to asking the AI Tutor at least 2 questions daily about complex concepts to enhance your consistency score. (Current: ${aiChats} interactions)`,
+                actionableItem: `/student/ai`,
+                priority: 'low',
+                category: 'Productivity improvement tips',
+                confidence: 70
+            });
+        }
 
     } else if (role === 'faculty') {
         // 1. Unchecked submissions reminder
@@ -657,18 +657,21 @@ export const getRecommendations = async (userId: string, role: string) => {
             });
         }
 
-        // 3. General recommendation
-        recommendations.push({
-            user: uid,
-            role: 'admin',
-            type: 'productivity',
-            title: `Institute department ranking system`,
-            description: `Integrate monthly academic checkpoints and metrics dashboard for department comparisons.`,
-            actionableItem: `/admin`,
-            priority: 'low',
-            category: 'Institutional improvement strategies',
-            confidence: 80
-        });
+        // 3. Platform Growth Strategy
+        const totalSubmissions = await Submission.countDocuments();
+        if (totalSubmissions < 100) {
+            recommendations.push({
+                user: uid,
+                role: 'admin',
+                type: 'productivity',
+                title: `Institute department ranking system`,
+                description: `Integrate monthly academic checkpoints and metrics dashboard for department comparisons to boost current low engagement (${totalSubmissions} submissions).`,
+                actionableItem: `/admin`,
+                priority: 'low',
+                category: 'Institutional improvement strategies',
+                confidence: 80
+            });
+        }
     }
 
     // Resolve explanations dynamically (Module 6)
@@ -695,186 +698,14 @@ export const getRecommendations = async (userId: string, role: string) => {
 
 /**
  * =========================================================
- * FEATURE 2 - AI PREDICTIVE ANALYTICS SERVICE
+ * FEATURE 2 - PREDICTIVE INTELLIGENCE ENGINE (Phase 5B.3B)
+ * Delegates to dedicated prediction.service.ts for all
+ * deterministic statistical trend calculations.
  * =========================================================
  */
-export const getPredictions = async (userId: string, role: string) => {
-    const cacheKey = `predictions_${userId}`;
-    const cached = getCachedData(cacheKey);
-    if (cached) return cached;
-
-    const uid = new mongoose.Types.ObjectId(userId);
-    const predictions: any[] = [];
-
-    // Timelines for statistical trend (7 days vs prior 7 days)
-    const now = new Date();
-    const last7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const prev14 = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    if (role === 'student') {
-        const student = await User.findById(uid);
-        const clId = student?.classroom;
-
-        // 1. Assignment Completion
-        const recentSubs = await Submission.countDocuments({ student: uid, createdAt: { $gte: last7 } });
-        const priorSubs = await Submission.countDocuments({ student: uid, createdAt: { $gte: prev14, $lt: last7 } });
-        const subPred = await computeStatisticalPrediction(recentSubs, priorSubs, 80);
-
-        predictions.push({
-            metric: 'Assignment Completion Forecast',
-            current: subPred.current,
-            predicted: subPred.predicted,
-            trend: subPred.trend,
-            confidence: subPred.confidence,
-            description: `Forecasted submission metrics next week based on your historic completion of ${recentSubs} assignments.`,
-            category: 'academic'
-        });
-
-        // 2. Student Engagement
-        const recentLogs = await ActivityTimeline.countDocuments({ user: uid, createdAt: { $gte: last7 } });
-        const priorLogs = await ActivityTimeline.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
-        const logPred = await computeStatisticalPrediction(recentLogs, priorLogs, 85);
-
-        predictions.push({
-            metric: 'Platform Engagement Index',
-            current: logPred.current,
-            predicted: logPred.predicted,
-            trend: logPred.trend,
-            confidence: logPred.confidence,
-            description: `Active study session index calculated from ${recentLogs} portal interaction events this week.`,
-            category: 'engagement'
-        });
-
-        // 3. AI Usage
-        const recentAI = await AIChat.countDocuments({ user: uid, createdAt: { $gte: last7 } }) +
-                         await AINotes.countDocuments({ user: uid, createdAt: { $gte: last7 } });
-        const priorAI = await AIChat.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } }) +
-                       await AINotes.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
-        const aiPred = await computeStatisticalPrediction(recentAI, priorAI, 78);
-
-        predictions.push({
-            metric: 'AI Assistant Query Scaling',
-            current: aiPred.current,
-            predicted: aiPred.predicted,
-            trend: aiPred.trend,
-            confidence: aiPred.confidence,
-            description: `RAG tutor and note interactions forecasted to reach ${aiPred.predicted} actions next week.`,
-            category: 'adoption'
-        });
-
-        // 4. Workload Pressure
-        const pendingCount = clId ? await Assignment.countDocuments({ classroom: clId, dueDate: { $gt: now } }) : 0;
-        predictions.push({
-            metric: 'Academic Workload Level',
-            current: pendingCount,
-            predicted: pendingCount > 3 ? pendingCount - 1 : pendingCount,
-            trend: pendingCount > 3 ? 'DOWNWARD' : 'STABLE',
-            confidence: 90,
-            description: `Calculated from ${pendingCount} upcoming course assignments due over the syllabus schedule.`,
-            category: 'workload'
-        });
-
-    } else if (role === 'faculty') {
-        const classrooms = await Classroom.find({ faculty: uid });
-        const classIds = classrooms.map(c => c._id);
-        const assignments = await Assignment.find({ classroom: { $in: classIds } });
-        const assignmentIds = assignments.map(a => a._id);
-
-        // 1. Classroom Submission Engagement
-        const recentSubs = await Submission.countDocuments({ assignment: { $in: assignmentIds }, createdAt: { $gte: last7 } });
-        const priorSubs = await Submission.countDocuments({ assignment: { $in: assignmentIds }, createdAt: { $gte: prev14, $lt: last7 } });
-        const subPred = await computeStatisticalPrediction(recentSubs, priorSubs, 82);
-
-        predictions.push({
-            metric: 'Classroom Return Ratio',
-            current: `${recentSubs} submissions`,
-            predicted: `${subPred.predicted} submissions`,
-            trend: subPred.trend,
-            confidence: subPred.confidence,
-            description: `Expected classroom submission efficiency predicted across your ${classrooms.length} active classes.`,
-            category: 'engagement'
-        });
-
-        // 2. Faculty Workload Level
-        const unchecked = await Submission.countDocuments({ assignment: { $in: assignmentIds }, status: 'Submitted' });
-        predictions.push({
-            metric: 'Grading Review Workload',
-            current: unchecked,
-            predicted: unchecked > 5 ? unchecked - 3 : unchecked,
-            trend: unchecked > 5 ? 'DOWNWARD' : 'STABLE',
-            confidence: 95,
-            description: `Course grading and syllabus delivery pressure based on ${unchecked} pending homework reviews.`,
-            category: 'workload'
-        });
-
-        // 3. AI Usage (Adoption)
-        const recentLP = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: last7 } }) +
-                          await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: last7 } });
-        const priorLP = await AILessonPlan.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } }) +
-                         await AIQuestionPaper.countDocuments({ user: uid, createdAt: { $gte: prev14, $lt: last7 } });
-        const lpPred = await computeStatisticalPrediction(recentLP, priorLP, 80);
-
-        predictions.push({
-            metric: 'AI Syllabus Adoption Rate',
-            current: recentLP,
-            predicted: lpPred.predicted,
-            trend: lpPred.trend,
-            confidence: lpPred.confidence,
-            description: `Curriculum drafting actions forecast (Lesson plans, question documents).`,
-            category: 'adoption'
-        });
-
-    } else {
-        // Admin Predictions
-        // 1. Platform Growth (New signups/timeline events)
-        const recentSignups = await User.countDocuments({ createdAt: { $gte: last7 } });
-        const priorSignups = await User.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } });
-        const userPred = await computeStatisticalPrediction(recentSignups, priorSignups, 88);
-
-        predictions.push({
-            metric: 'Campus Directory Growth',
-            current: `${recentSignups} signups`,
-            predicted: `${userPred.predicted} signups`,
-            trend: userPred.trend,
-            confidence: userPred.confidence,
-            description: `Expected account directory additions predicted across student and faculty cohorts.`,
-            category: 'growth'
-        });
-
-        // 2. Department Activity Index
-        const classroomsCount = await Classroom.countDocuments();
-        predictions.push({
-            metric: 'Institutional Activity Index',
-            current: classroomsCount,
-            predicted: classroomsCount + 1,
-            trend: 'UPWARD',
-            confidence: 92,
-            description: `Active sections and course operations forecast across CSE and EE academic departments.`,
-            category: 'activity'
-        });
-
-        // 3. AI Usage (Platform wide)
-        const recentAI = await AIChat.countDocuments({ createdAt: { $gte: last7 } }) +
-                         await AINotes.countDocuments({ createdAt: { $gte: last7 } }) +
-                         await AIQuiz.countDocuments({ createdAt: { $gte: last7 } });
-        const priorAI = await AIChat.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } }) +
-                       await AINotes.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } }) +
-                       await AIQuiz.countDocuments({ createdAt: { $gte: prev14, $lt: last7 } });
-        const globalAIPred = await computeStatisticalPrediction(recentAI, priorAI, 85);
-
-        predictions.push({
-            metric: 'Campus AI RAG Engagement',
-            current: recentAI,
-            predicted: globalAIPred.predicted,
-            trend: globalAIPred.trend,
-            confidence: globalAIPred.confidence,
-            description: `Overall system cognitive interactions forecast for next week.`,
-            category: 'adoption'
-        });
-    }
-
-    setCachedData(cacheKey, predictions);
-    return predictions;
+export const getPredictions = async (userId: string, role: string, period: string = '7_DAYS') => {
+    const { generatePredictions } = await import('./prediction.service.js');
+    return generatePredictions(userId, role, period);
 };
 
 /**

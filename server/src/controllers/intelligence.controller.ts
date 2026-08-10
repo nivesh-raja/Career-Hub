@@ -253,8 +253,9 @@ export const getUserPredictions = async (req: AuthenticatedRequest, res: Respons
 
         const userId = req.user._id.toString();
         const role = req.user.role;
+        const period = (req.query.period as string) || '7_DAYS';
 
-        const predictions = await getPredictions(userId, role);
+        const predictions = await getPredictions(userId, role, period);
 
         res.status(200).json({
             success: true,

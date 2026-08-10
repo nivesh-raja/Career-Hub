@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api.js';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { PredictionCard } from './predictions/PredictionCard.js';
+import { HistoricalTrendChart } from './predictions/HistoricalTrendChart.js';
+import { PredictionSkeleton } from './predictions/PredictionSkeleton.js';
+import { PredictionEmptyState } from './predictions/PredictionEmptyState.js';
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card.js';
 import { Badge } from '../ui/Badge.js';
 import { Button } from '../ui/Button.js';
@@ -185,7 +189,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
     const [timelinePage, setTimelinePage] = useState(1);
     const [timelineFilter, setTimelineFilter] = useState('all');
     const [notificationPage, setNotificationPage] = useState(1);
-    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report' | 'recommendations' | 'predictions' | 'risk'>('overview');
 
     const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
     const showStatus = (text: string, type: 'success' | 'error' = 'success') => {
@@ -619,7 +623,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                             <p className="text-[11px] text-text-secondary dark:text-slate-450 leading-relaxed">
                                                 {rec.description}
                                             </p>
-                                            
+
                                             {/* Gemini Explanation Reason (Module 6) */}
                                             {rec.reason && (
                                                 <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg flex gap-2 items-start">
@@ -666,117 +670,50 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                 </Card>
             )}
 
-            {/* ─── TAB: PREDICTIONS ───────────────────────────────────────── */}
+            {/* ─── TAB: PREDICTIONS (Phase 5B.3B) ─────────────────────────── */}
             {activeTab === 'predictions' && (
                 <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
                     <CardHeader>
-                        <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
-                            <TrendingUp className="h-4 w-4" /> Predictive Intelligence & Trend Forecasts
-                        </CardTitle>
-                        <CardDescription>
-                            Statistical forecasts computed via MongoDB aggregations of historical timeline activity.
-                        </CardDescription>
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
+                                    <TrendingUp className="h-4 w-4" /> Predictive Intelligence Engine
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                    Deterministic statistical forecasts using least squares linear regression and weighted moving averages on historical MongoDB activity data. Prediction horizon: next 7 days.
+                                </CardDescription>
+                            </div>
+                            <div className="flex bg-slate-100/50 dark:bg-dark-surface/50 p-0.5 rounded-lg border border-border dark:border-dark-border text-[10px] font-bold gap-0.5 shrink-0">
+                                <span className="px-3 py-1.5 rounded-md bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300 select-none">7 Days</span>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {isPredsLoading ? (
-                            <div className="space-y-4 py-6">
-                                <div className="h-48 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {[...Array(3)].map((_, i) => <div key={i} className="h-28 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />)}
-                                </div>
-                            </div>
+                            <PredictionSkeleton />
                         ) : (
                             <>
-                                {/* Recharts Trend Chart (Module 8) */}
-                                {(predsData?.predictions || []).length > 0 && (
-                                    <div className="bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 p-4 rounded-xl">
-                                        <h4 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none mb-4">
-                                            Current vs Predicted Statistical Activity Comparison
-                                        </h4>
-                                        <div className="h-56">
-                                            {(() => {
-                                                const chartData = (predsData.predictions || []).map((pred: any) => ({
-                                                    name: pred.metric.replace(' Forecast', '').replace(' Index', '').replace(' Query Scaling', ''),
-                                                    Current: typeof pred.current === 'number' ? pred.current : parseFloat(pred.current) || 1,
-                                                    Predicted: typeof pred.predicted === 'number' ? pred.predicted : parseFloat(pred.predicted) || 1
-                                                }));
+                                {/* Chart: valid predictions only */}
+                                <HistoricalTrendChart predictions={predsData?.predictions || []} />
 
-                                                return (
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                                                            <defs>
-                                                                <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                                                                </linearGradient>
-                                                                <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                                                                </linearGradient>
-                                                            </defs>
-                                                            <CartesianGrid strokeDasharray="3 3" stroke="#64748b" opacity={0.15} />
-                                                            <XAxis dataKey="name" stroke="#64748b" fontSize={9} />
-                                                            <YAxis stroke="#64748b" fontSize={9} />
-                                                            <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', fontSize: 10 }} />
-                                                            <Legend wrapperStyle={{ fontSize: 9 }} />
-                                                            <Area name="Current Action Volume" type="monotone" dataKey="Current" stroke="#3b82f6" fillOpacity={1} fill="url(#colorCurrent)" strokeWidth={2} />
-                                                            <Area name="Forecasted Output" type="monotone" dataKey="Predicted" stroke="#10b981" fillOpacity={1} fill="url(#colorPredicted)" strokeWidth={2} strokeDasharray="5 5" />
-                                                        </AreaChart>
-                                                    </ResponsiveContainer>
-                                                );
-                                            })()}
-                                        </div>
+                                {/* Prediction Cards */}
+                                {(predsData?.predictions || []).length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {(predsData?.predictions || []).map((pred: any, idx: number) => (
+                                            <PredictionCard key={idx} pred={pred} />
+                                        ))}
                                     </div>
+                                ) : (
+                                    <PredictionEmptyState />
                                 )}
 
-                                {/* Prediction Cards (Module 8) */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {(predsData?.predictions || []).map((pred: any, idx: number) => (
-                                        <Card key={idx} className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border hover:shadow-subtle transition-all">
-                                            <CardContent className="p-4 space-y-3 text-xs flex flex-col justify-between h-full min-h-[140px]">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-bold text-text-primary dark:text-gray-300 truncate">{pred.metric}</span>
-                                                    <Badge className={`text-[9px] font-bold py-0.5 ${pred.trend === 'UPWARD' || pred.trend === 'UP'
-                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                                                        : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
-                                                        }`}>
-                                                        {pred.trend}
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex items-baseline justify-between pt-1">
-                                                    <div>
-                                                        <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Predicted Value</span>
-                                                        <span className="text-md font-extrabold text-primary dark:text-primary-300">{pred.predicted}</span>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Current Value</span>
-                                                        <span className="text-xs font-bold text-text-primary dark:text-slate-355">{pred.current}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Confidence Indicator */}
-                                                <div className="space-y-1">
-                                                    <div className="flex justify-between items-center text-[9px] text-text-secondary dark:text-slate-500 font-semibold">
-                                                        <span>Statistical Confidence</span>
-                                                        <span>{pred.confidence}%</span>
-                                                    </div>
-                                                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                                        <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${pred.confidence}%` }} />
-                                                    </div>
-                                                </div>
-
-                                                <p className="text-[10px] text-text-secondary dark:text-slate-400 leading-relaxed pt-1 border-t border-border/20">
-                                                    {pred.description}
-                                                </p>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                    {(predsData?.predictions || []).length === 0 && (
-                                        <div className="col-span-3 py-12 text-center text-xs text-text-secondary dark:text-slate-400 italic">
-                                            Predictive analytics require historic student engagement logs to calculate ratios.
-                                        </div>
-                                    )}
-                                </div>
+                                {/* Method footnote */}
+                                {(predsData?.predictions || []).some((p: any) => p.predictionStatus === 'VALID') && (
+                                    <div className="pt-2 border-t border-border/20 text-[9px] text-text-secondary dark:text-slate-500 italic">
+                                        Predictions computed using least squares linear regression (OLS) on 4-week historical activity data from MongoDB.
+                                        Trend threshold: slope &gt; 5% of weekly mean = UP/DOWN, otherwise STABLE.
+                                    </div>
+                                )}
                             </>
                         )}
                     </CardContent>
@@ -788,7 +725,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                 <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
                     <CardHeader>
                         <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
-                            <Shield className="h-4 w-4" /> Academic Risk Assessment & Early Intervention
+                            <Shield className="h-4 w-4" /> Academic Risk Assessment &amp; Early Intervention
                         </CardTitle>
                         <CardDescription>
                             Predictive risk index calculated from assignment submission rates, consistency scores, and AI activity.
@@ -827,7 +764,6 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                     <h3 className={`text-3xl font-black font-serif ${r.riskColor === 'red' ? 'text-rose-500' : r.riskColor === 'yellow' ? 'text-amber-500' : 'text-emerald-500'}`}>
                                                         {r.score || 100}
                                                     </h3>
-                                                    {/* Animated glow */}
                                                     <div className={`absolute inset-0 bg-${r.riskColor}-550/5 animate-pulse`} />
                                                 </div>
                                             </div>
@@ -840,12 +776,12 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                             </div>
                                         </Card>
 
-                                        {/* Risk Reasons (Module 5) */}
+                                        {/* Risk Reasons */}
                                         <Card className="lg:col-span-2 bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border p-6 space-y-4">
                                             <h4 className="text-xs font-bold text-text-primary dark:text-slate-350 uppercase tracking-wider select-none border-b border-border/20 pb-2">
-                                                Performance Indicator Analysis & Diagnostics
+                                                Performance Indicator Analysis &amp; Diagnostics
                                             </h4>
-                                            
+
                                             <div className="space-y-3">
                                                 {(r.reasons || []).map((reason: string, index: number) => (
                                                     <div key={index} className="flex gap-2.5 items-start text-xs">
@@ -870,7 +806,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                 <h5 className="text-[10px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none">
                                                     Risk Factors Breakdown
                                                 </h5>
-                                                
+
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
                                                     <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
                                                         <span className="text-text-secondary dark:text-slate-505 block font-semibold">Submissions</span>
@@ -879,7 +815,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                             <div className="bg-primary h-full" style={{ width: `${breakdown.assignmentCompletion ?? 0}%` }} />
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="p-3 bg-slate-500/5 dark:bg-dark-surface/50 border border-border/40 dark:border-dark-border/40 rounded-xl space-y-1">
                                                         <span className="text-text-secondary dark:text-slate-505 block font-semibold">Quiz Mastery</span>
                                                         <span className="font-extrabold text-xs block text-text-primary dark:text-gray-300">{breakdown.quizPerformance ?? 0}%</span>
@@ -1082,10 +1018,10 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                             ].map(f => (
                                 <button
                                     key={f.id}
-                                    onClick={() => { setTimelineFilter(f.id); setTimelinePage(1); }}
-                                    className={`px-2.5 py-1 rounded transition-all ${timelineFilter === f.id
-                                        ? 'bg-white dark:bg-dark-card text-primary dark:text-primary-300 shadow-sm border border-border/20'
-                                        : 'text-text-secondary dark:text-slate-400 hover:text-text-primary hover:bg-slate-50 dark:hover:bg-dark-hover'
+                                    onClick={() => setTimelineFilter(f.id as any)}
+                                    className={`px-2.5 py-1.5 rounded-md transition-all ${timelineFilter === f.id
+                                        ? 'bg-white dark:bg-dark-card shadow-subtle text-primary dark:text-primary-300'
+                                        : 'text-text-secondary hover:text-text-primary dark:text-slate-400 dark:hover:text-gray-200'
                                         }`}
                                 >
                                     {f.label}
@@ -1093,57 +1029,55 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                             ))}
                         </div>
                     </CardHeader>
-                    <CardContent className="relative pl-6 sm:pl-8 space-y-6 pt-6">
-                        <div className="absolute left-4.5 sm:left-6.5 top-6 bottom-8 w-0.5 bg-slate-200 dark:bg-dark-border" />
+                    <CardContent className="space-y-0 pt-4">
                         {isTimelineLoading ? (
-                            <div className="space-y-4 py-2">
-                                {[...Array(3)].map((_, i) => (
-                                    <div key={i} className="h-16 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />
-                                ))}
+                            <div className="space-y-3">
+                                {[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-slate-100 dark:bg-dark-hover animate-pulse rounded-lg" />)}
                             </div>
-                        ) : timelineData?.timeline?.map((item: any, idx: number) => {
-                            const iconName = item.metadata?.icon || 'activity';
-                            const colorName = item.metadata?.color || 'slate';
-
-                            const IconComponent = iconMap[iconName] || Activity;
-                            const colors = colorMap[colorName] || colorMap.slate;
-
-                            return (
-                                <div key={item._id || idx} className="relative flex gap-4 text-xs">
-                                    <div className={`absolute -left-5 sm:-left-7 p-1.5 rounded-full border z-10 ${colors.bg} ${colors.border}`}>
-                                        <IconComponent className={`h-3.5 w-3.5 ${colors.text}`} />
-                                    </div>
-                                    <div className="pl-2">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <h5 className="font-bold text-text-primary dark:text-gray-200">{item.title}</h5>
-                                            {item.metadata?.module && (
-                                                <Badge className="text-[8px] py-0 px-1 border border-border/40 bg-slate-50 dark:bg-dark-surface dark:border-dark-border/50 text-text-secondary dark:text-slate-400 uppercase font-bold rounded">
-                                                    {item.metadata.module}
-                                                </Badge>
+                        ) : (timelineData?.events || []).length > 0 ? (
+                            <>
+                                {(timelineData?.events || []).map((event: any, idx: number) => {
+                                    const IconComponent = iconMap[event.icon] || Activity;
+                                    const colors = colorMap[event.color] || colorMap.slate;
+                                    return (
+                                        <div key={idx} className="flex gap-3 items-start pb-4 relative">
+                                            {idx < (timelineData?.events || []).length - 1 && (
+                                                <div className="absolute left-4 top-8 bottom-0 w-px bg-border/30 dark:bg-dark-border/30" />
                                             )}
+                                            <div className={`p-2 rounded-lg border shrink-0 z-10 ${colors.bg} ${colors.border}`}>
+                                                <IconComponent className={`h-3.5 w-3.5 ${colors.text}`} />
+                                            </div>
+                                            <div className="flex-1 min-w-0 pt-0.5">
+                                                <div className="flex items-start justify-between gap-2 flex-wrap">
+                                                    <p className="text-[11px] font-semibold text-text-primary dark:text-gray-200 leading-snug">
+                                                        {event.description}
+                                                    </p>
+                                                    <span className="text-[9px] text-text-secondary dark:text-slate-500 shrink-0 font-semibold">
+                                                        {new Date(event.timestamp).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                                <span className={`text-[9px] font-bold uppercase tracking-wider ${colors.text}`}>{event.type}</span>
+                                            </div>
                                         </div>
-                                        <span className="text-[9px] text-text-secondary dark:text-slate-500 font-semibold block mt-0.5">
-                                            Executed: {new Date(item.createdAt).toLocaleString()}
+                                    );
+                                })}
+
+                                {/* Timeline Pagination */}
+                                {(timelineData?.total ?? 0) > 10 && (
+                                    <div className="flex items-center justify-between pt-4 border-t border-border/40 text-xs font-bold">
+                                        <span className="text-text-secondary dark:text-slate-300">
+                                            Page {timelinePage} of {Math.ceil((timelineData?.total ?? 0) / 10)}
                                         </span>
-                                        <p className="text-text-secondary dark:text-slate-400 mt-1.5 leading-relaxed">{item.description}</p>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" variant="outline" disabled={timelinePage <= 1} onClick={() => setTimelinePage(p => p - 1)}>Previous</Button>
+                                            <Button size="sm" variant="outline" disabled={timelinePage >= Math.ceil((timelineData?.total ?? 0) / 10)} onClick={() => setTimelinePage(p => p + 1)}>Next</Button>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                        {(!isTimelineLoading && (!timelineData || timelineData.timeline.length === 0)) && (
-                            <div className="py-8 text-center text-xs text-text-secondary dark:text-slate-400 italic">
-                                No activity stream records found. Perform study notes creation or upload document materials.
-                            </div>
-                        )}
-                        {timelineData?.totalCount > 6 && (
-                            <div className="flex items-center justify-between pt-6 border-t border-border/40 text-xs font-bold pl-0">
-                                <span className="text-text-secondary dark:text-slate-300">
-                                    Showing page {timelinePage} of {Math.ceil(timelineData.totalCount / 6)}
-                                </span>
-                                <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" disabled={timelinePage <= 1} onClick={() => setTimelinePage(p => p - 1)}>Previous Page</Button>
-                                    <Button size="sm" variant="outline" disabled={timelinePage >= Math.ceil(timelineData.totalCount / 6)} onClick={() => setTimelinePage(p => p + 1)}>Next Page</Button>
-                                </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="py-12 text-center text-xs text-text-secondary dark:text-slate-400 italic">
+                                No timeline events found for the selected filter.
                             </div>
                         )}
                     </CardContent>
@@ -1152,19 +1086,18 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
 
             {/* ─── TAB: WEEKLY REPORT ─────────────────────────────────────── */}
             {activeTab === 'report' && (
-                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border">
                     {isWeeklyReportLoading ? (
-                        <div className="p-12 text-center text-xs text-text-secondary dark:text-slate-400">
-                            <RefreshCw className="h-8 w-8 mx-auto mb-3 text-amber-500 animate-spin" />
-                            Analyzing your performance logs and constructing your weekly report...
+                        <div className="p-8 space-y-4 animate-pulse">
+                            <div className="h-8 bg-slate-100 dark:bg-dark-hover rounded-lg" />
+                            <div className="grid grid-cols-4 gap-4">
+                                {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-slate-100 dark:bg-dark-hover rounded-lg" />)}
+                            </div>
                         </div>
                     ) : (
                         <>
                             {(() => {
-                                const currentReport = weeklyReportData?.report || {};
-                                const rData = currentReport.reportData || {};
-
+                                const rData = weeklyReportData || {};
                                 return (
                                     <>
                                         <CardHeader className="border-b border-border/40 dark:border-dark-border/40 pb-4">
@@ -1200,13 +1133,12 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                     AI Copilot Narrative Insight
                                                 </h4>
                                                 <p className="text-text-secondary dark:text-slate-300 leading-relaxed font-serif text-xs italic">
-                                                    "{rData.summary || 'Summary is being drafted by our RAG analyst.'}"
+                                                    &quot;{rData.summary || 'Summary is being drafted by our RAG analyst.'}&quot;
                                                 </p>
                                             </div>
 
                                             {role === 'student' && (
                                                 <div className="space-y-6">
-                                                    {/* Student Metrics Grid */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <div className="flex justify-between items-center text-text-secondary dark:text-slate-400 uppercase select-none tracking-widest text-[9px] font-bold">
@@ -1268,26 +1200,17 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
 
                                             {role === 'faculty' && (
                                                 <div className="space-y-6">
-                                                    {/* Faculty Stats Grid */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <span className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none block">Assignments Published</span>
-                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">
-                                                                {rData.assignmentsPublished ?? 0}
-                                                            </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Across {rData.activeClassrooms ?? 0} classrooms
-                                                            </span>
+                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">{rData.assignmentsPublished ?? 0}</div>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Across {rData.activeClassrooms ?? 0} classrooms</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <span className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none block">Total Student Submissions</span>
-                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">
-                                                                {rData.studentSubmissions ?? 0}
-                                                            </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Classrooms response index
-                                                            </span>
+                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">{rData.studentSubmissions ?? 0}</div>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Classrooms response index</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
@@ -1295,9 +1218,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                             <div className="text-lg font-extrabold text-text-primary dark:text-gray-200 truncate pt-1">
                                                                 Plans: {rData.lessonPlansGenerated ?? 0} | Papers: {rData.questionPapersCreated ?? 0}
                                                             </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Adoption index: {rData.aiUsage ?? 0} tools used
-                                                            </span>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Adoption index: {rData.aiUsage ?? 0} tools used</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
@@ -1305,9 +1226,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                             <div className="text-lg font-bold text-text-primary dark:text-gray-200 truncate pt-1">
                                                                 {rData.mostActiveClassroom && rData.mostActiveClassroom !== 'N/A' ? rData.mostActiveClassroom : 'None'}
                                                             </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block truncate">
-                                                                Least active: {rData.leastActiveClassroom || 'N/A'}
-                                                            </span>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block truncate">Least active: {rData.leastActiveClassroom || 'N/A'}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1315,16 +1234,11 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
 
                                             {role === 'admin' && (
                                                 <div className="space-y-6">
-                                                    {/* Admin Stats Grid */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <span className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none block">Total Users Directory</span>
-                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">
-                                                                {rData.totalUsers ?? 0}
-                                                            </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                +{rData.newUsersThisWeek ?? 0} new this week
-                                                            </span>
+                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">{rData.totalUsers ?? 0}</div>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">+{rData.newUsersThisWeek ?? 0} new this week</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
@@ -1332,29 +1246,19 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                             <div className="text-lg font-extrabold text-text-primary dark:text-gray-200 pt-1">
                                                                 Stud: {rData.activeStudents ?? 0} | Fac: {rData.activeFaculty ?? 0}
                                                             </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Access levels verified
-                                                            </span>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Access levels verified</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <span className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none block">Document Intelligence RAG</span>
-                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">
-                                                                {rData.documentsProcessed ?? 0} docs
-                                                            </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Vector indices synced
-                                                            </span>
+                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">{rData.documentsProcessed ?? 0} docs</div>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Vector indices synced</span>
                                                         </div>
 
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <span className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-widest select-none block">Weekly RAG Load</span>
-                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">
-                                                                {rData.totalAIUsage ?? 0} calls
-                                                            </div>
-                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">
-                                                                Chats: {rData.aiChats ?? 0} sessions
-                                                            </span>
+                                                            <div className="text-2xl font-extrabold text-text-primary dark:text-gray-200">{rData.totalAIUsage ?? 0} calls</div>
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-500 block">Chats: {rData.aiChats ?? 0} sessions</span>
                                                         </div>
                                                     </div>
 
@@ -1362,7 +1266,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                                     {rData.departmentActivity?.length > 0 && (
                                                         <div className="border border-border dark:border-dark-border/50 p-4 rounded-xl space-y-2 bg-white/20 dark:bg-dark-card/25">
                                                             <h5 className="font-bold text-text-primary dark:text-slate-350 text-[10px] uppercase select-none tracking-widest">
-                                                                Department Resource & Activity Metrics
+                                                                Department Resource &amp; Activity Metrics
                                                             </h5>
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                                                                 {rData.departmentActivity.map((dept: any, index: number) => (
@@ -1392,4 +1296,4 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
             )}
         </div>
     );
-};
+};
