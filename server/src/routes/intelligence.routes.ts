@@ -12,8 +12,12 @@ import {
     getUserPredictions,
     getUserRiskAssessment
 } from '../controllers/intelligence.controller.js';
+import { generateIntelligenceExplanation } from '../controllers/explanation.controller.js';
 
 const router = Router();
+
+// Phase 5B.3C — AI Explanation Engine
+router.post('/explain', protect, generateIntelligenceExplanation);
 
 router.get('/dashboard', protect, getDashboardIntelligence);
 router.get('/timeline', protect, lazyLoadTimeline);

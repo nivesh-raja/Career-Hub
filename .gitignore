@@ -40,3 +40,7 @@ coverage/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Audit logs & temporary QA runs
+qa_audit/
+

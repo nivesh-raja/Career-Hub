@@ -189,7 +189,14 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
     const [timelinePage, setTimelinePage] = useState(1);
     const [timelineFilter, setTimelineFilter] = useState('all');
     const [notificationPage, setNotificationPage] = useState(1);
-    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report' | 'recommendations' | 'predictions' | 'risk'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report' | 'recommendations' | 'predictions' | 'risk' | 'insight'>('overview');
+
+    // ─── Phase 5B.3C: AI Insight State ───────────────────────────────────────
+    const [insightLoading, setInsightLoading] = useState(false);
+    const [insightResult, setInsightResult] = useState<any | null>(null);
+    const [insightError, setInsightError] = useState<string | null>(null);
+    const [hasGeneratedInsight, setHasGeneratedInsight] = useState(false);
+    const [insightSubmitting, setInsightSubmitting] = useState(false);
 
     const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
     const showStatus = (text: string, type: 'success' | 'error' = 'success') => {
@@ -275,6 +282,26 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
         },
         staleTime: 30000
     });
+
+    // ─── Phase 5B.3C: Generate AI Explanation ────────────────────────────────
+    const handleGenerateInsight = async () => {
+        if (insightSubmitting || insightLoading) return;
+        setInsightLoading(true);
+        setInsightError(null);
+        setInsightSubmitting(true);
+        try {
+            const response = await api.post('/intelligence/explain');
+            setInsightResult(response.data);
+            setHasGeneratedInsight(true);
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'AI explanation is temporarily unavailable. Please try again.';
+            setInsightError(msg);
+        } finally {
+            setInsightLoading(false);
+            // Debounce: allow retry only after 5 seconds
+            setTimeout(() => setInsightSubmitting(false), 5000);
+        }
+    };
 
     const handleMarkRead = async (id: string) => {
         try {
@@ -367,6 +394,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
 
     const tabs = [
         { id: 'overview', label: 'Hub Dashboard' },
+        { id: 'insight', label: 'AI Insight' },
         { id: 'recommendations', label: 'AI Recommendations' },
         { id: 'predictions', label: 'Predictions' },
         { id: 'risk', label: 'Risk Assessment' },
@@ -582,6 +610,212 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* ─── TAB: AI INSIGHT (Phase 5B.3C) ──────────────────────────── */}
+            {activeTab === 'insight' && (
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
+                    <CardHeader>
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-amber-600 dark:text-amber-400">
+                                    <Sparkles className="h-4 w-4 animate-pulse" /> AI Intelligent Explanation
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                    Gemini interprets your verified intelligence snapshot — scores, trends, predictions and recommendations.
+                                    Backend data remains authoritative; AI only explains.
+                                </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {hasGeneratedInsight && !insightLoading && (
+                                    <span className="text-[9px] text-text-secondary dark:text-slate-500 italic">
+                                        {insightResult?.source === 'deterministic_fallback' ? '⚠ Fallback active' : '✓ Gemini'}
+                                    </span>
+                                )}
+                                <Button
+                                    id="btn-generate-ai-insight"
+                                    onClick={handleGenerateInsight}
+                                    disabled={insightLoading || insightSubmitting}
+                                    className="text-xs flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {insightLoading ? (
+                                        <><RefreshCw className="h-3 w-3 animate-spin" /> Generating...</>
+                                    ) : hasGeneratedInsight ? (
+                                        <><RefreshCw className="h-3 w-3" /> Refresh AI Insight</>
+                                    ) : (
+                                        <><Sparkles className="h-3 w-3" /> Generate Insight</>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {/* Loading Skeleton */}
+                        {insightLoading && (
+                            <div className="space-y-4 py-4">
+                                <div className="text-center py-6">
+                                    <Sparkles className="h-8 w-8 mx-auto mb-3 text-amber-500 animate-pulse" />
+                                    <p className="text-xs text-text-secondary dark:text-slate-400 font-medium">Generating explanation...</p>
+                                    <p className="text-[10px] text-text-secondary dark:text-slate-500 mt-1">Gemini is analysing your intelligence snapshot</p>
+                                </div>
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="h-16 bg-slate-100 dark:bg-dark-surface animate-pulse rounded-lg border border-border/10" />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Not yet generated */}
+                        {!insightLoading && !hasGeneratedInsight && !insightError && (
+                            <div className="py-16 text-center space-y-4">
+                                <Sparkles className="h-10 w-10 mx-auto text-amber-400 opacity-60" />
+                                <p className="text-sm font-semibold text-text-primary dark:text-gray-300">
+                                    Generate your personalised AI Insight
+                                </p>
+                                <p className="text-xs text-text-secondary dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                                    Click <strong>Generate Insight</strong> above. Gemini will interpret your verified academic health,
+                                    risk classification, predictions, and recommendations into a clear, actionable explanation.
+                                    Backend data is always authoritative — Gemini only explains.
+                                </p>
+                                <div className="flex gap-2 justify-center flex-wrap text-[10px] text-text-secondary dark:text-slate-500">
+                                    <span className="bg-slate-100 dark:bg-dark-surface px-2 py-1 rounded border border-border/20">✓ Role-scoped</span>
+                                    <span className="bg-slate-100 dark:bg-dark-surface px-2 py-1 rounded border border-border/20">✓ Server-authoritative</span>
+                                    <span className="bg-slate-100 dark:bg-dark-surface px-2 py-1 rounded border border-border/20">✓ Fallback-safe</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {!insightLoading && insightError && !insightResult && (
+                            <div className="py-8 text-center space-y-3">
+                                <AlertTriangle className="h-8 w-8 mx-auto text-amber-500" />
+                                <p className="text-sm font-semibold text-text-primary dark:text-gray-300">AI explanation is temporarily unavailable.</p>
+                                <p className="text-xs text-text-secondary dark:text-slate-400">{insightError}</p>
+                                <Button
+                                    id="btn-retry-ai-insight"
+                                    onClick={handleGenerateInsight}
+                                    disabled={insightSubmitting}
+                                    className="text-xs mt-2"
+                                >
+                                    Retry
+                                </Button>
+                                <p className="text-[9px] text-text-secondary dark:text-slate-500 italic mt-2">
+                                    Deterministic scores, trends, predictions and recommendations remain fully available.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Success: AI Explanation Output */}
+                        {!insightLoading && insightResult?.explanation && (
+                            <div className="space-y-5">
+                                {/* Source Badge */}
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border select-none ${insightResult.source === 'gemini'
+                                            ? 'bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400'
+                                            : 'bg-slate-500/10 border-slate-500/20 text-slate-600 dark:text-slate-400'
+                                        }`}>
+                                        {insightResult.source === 'gemini' ? '✦ GEMINI AI' : '⚙ DETERMINISTIC FALLBACK'}
+                                    </span>
+                                    <span className="text-[9px] text-text-secondary dark:text-slate-500">
+                                        Generated at {new Date(insightResult.generatedAt).toLocaleTimeString()}
+                                    </span>
+                                </div>
+
+                                {/* Summary */}
+                                <div className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20 rounded-xl p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider select-none">AI Summary</span>
+                                    </div>
+                                    <p className="text-[12px] text-text-primary dark:text-gray-200 leading-relaxed font-serif">
+                                        {insightResult.explanation.summary}
+                                    </p>
+                                </div>
+
+                                {/* Key Findings + Next Steps */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white/30 dark:bg-dark-card/20 border border-border dark:border-dark-border rounded-xl p-4 space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <Award className="h-3.5 w-3.5 text-primary dark:text-primary-300" />
+                                            <span className="text-[10px] font-bold text-text-primary dark:text-slate-300 uppercase tracking-wider select-none">Key Findings</span>
+                                        </div>
+                                        <ul className="space-y-2">
+                                            {(insightResult.explanation.keyFindings || []).map((f: string, i: number) => (
+                                                <li key={i} className="flex gap-2 items-start text-[11px] text-text-secondary dark:text-slate-300">
+                                                    <span className="shrink-0 mt-0.5 h-4 w-4 rounded-full bg-primary/10 text-primary dark:text-primary-300 flex items-center justify-center text-[9px] font-bold">{i + 1}</span>
+                                                    {f}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider select-none">Next Steps</span>
+                                        </div>
+                                        <ul className="space-y-2">
+                                            {(insightResult.explanation.nextSteps || []).map((s: string, i: number) => (
+                                                <li key={i} className="flex gap-2 items-start text-[11px] text-text-secondary dark:text-slate-300">
+                                                    <CheckCircle className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                                                    {s}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* Trend + Risk */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white/30 dark:bg-dark-card/20 border border-border dark:border-dark-border rounded-xl p-4 space-y-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
+                                            <span className="text-[10px] font-bold text-text-primary dark:text-slate-300 uppercase tracking-wider select-none">Trend Analysis</span>
+                                        </div>
+                                        <p className="text-[11px] text-text-secondary dark:text-slate-300 leading-relaxed">
+                                            {insightResult.explanation.trendExplanation}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white/30 dark:bg-dark-card/20 border border-border dark:border-dark-border rounded-xl p-4 space-y-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Shield className="h-3.5 w-3.5 text-rose-500" />
+                                            <span className="text-[10px] font-bold text-text-primary dark:text-slate-300 uppercase tracking-wider select-none">Risk Explanation</span>
+                                        </div>
+                                        <p className="text-[11px] text-text-secondary dark:text-slate-300 leading-relaxed">
+                                            {insightResult.explanation.riskExplanation}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Prediction + Recommendation */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-4 space-y-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Activity className="h-3.5 w-3.5 text-indigo-500" />
+                                            <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider select-none">Prediction Explanation</span>
+                                        </div>
+                                        <p className="text-[11px] text-text-secondary dark:text-slate-300 leading-relaxed">
+                                            {insightResult.explanation.predictionExplanation}
+                                        </p>
+                                    </div>
+                                    <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-2">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <GraduationCap className="h-3.5 w-3.5 text-violet-500" />
+                                            <span className="text-[10px] font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider select-none">Recommendation Context</span>
+                                        </div>
+                                        <p className="text-[11px] text-text-secondary dark:text-slate-300 leading-relaxed">
+                                            {insightResult.explanation.recommendationExplanation}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Disclaimer */}
+                                <div className="pt-2 border-t border-border/20 text-[9px] text-text-secondary dark:text-slate-500 italic">
+                                    AI Insight generated by Gemini via OpenRouter. Backend deterministic calculations (scores, risk, predictions, recommendations) remain the authoritative source of truth and are not modified by AI output.
+                                    {insightResult.source === 'deterministic_fallback' && ' Currently using deterministic fallback — AI provider temporarily unavailable.'}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             )}
 
             {/* ─── TAB: AI RECOMMENDATIONS ────────────────────────────────── */}
@@ -1296,4 +1530,4 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
             )}
         </div>
     );
-};
+};
