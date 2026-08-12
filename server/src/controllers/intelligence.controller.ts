@@ -14,6 +14,7 @@ import {
     deleteNotification,
     getAcademicRisk
 } from '../services/intelligence.service.js';
+import { generateInterventions } from '../services/intervention.service.js';
 
 /**
  * @desc    Get complete intelligence analytics package for user dashboard
@@ -292,3 +293,31 @@ export const getUserRiskAssessment = async (req: AuthenticatedRequest, res: Resp
     }
 };
 
+/**
+ * @desc    Phase 5B.4A — Get deterministic intervention plans for the authenticated user
+ * @route   GET /api/intelligence/interventions
+ * @access  Private (Student, Faculty, Admin)
+ *
+ * Role and userId are derived exclusively from the server-side JWT.
+ * The client never provides authoritative metrics — they are computed from MongoDB.
+ */
+export const getUserInterventions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        // Role is always derived from the authenticated server-side identity.
+        // Never trust client-provided role values.
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+
+        const result = await generateInterventions(userId, role);
+
+        res.status(200).json(result);
+    } catch (error: any) {
+        // Do not expose internal stack traces
+        res.status(500).json({ success: false, message: 'Intervention engine encountered an error. Please try again.' });
+    }
+};

@@ -10,7 +10,8 @@ import {
     removeNotification,
     getUserRecommendations,
     getUserPredictions,
-    getUserRiskAssessment
+    getUserRiskAssessment,
+    getUserInterventions
 } from '../controllers/intelligence.controller.js';
 import { generateIntelligenceExplanation } from '../controllers/explanation.controller.js';
 
@@ -26,6 +27,8 @@ router.get('/report', protect, getUserWeeklyReport);
 router.get('/recommendations', protect, getUserRecommendations);
 router.get('/predictions', protect, getUserPredictions);
 router.get('/risk', protect, getUserRiskAssessment);
+// Phase 5B.4A — Deterministic Adaptive Intervention Engine
+router.get('/interventions', protect, getUserInterventions);
 router.get('/notifications', protect, listNotifications);
 router.put('/notifications/mark-all-read', protect, setAllNotificationsRead);
 router.put('/notifications/:id/read', protect, setNotificationRead);

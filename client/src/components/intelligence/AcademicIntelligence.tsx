@@ -189,7 +189,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
     const [timelinePage, setTimelinePage] = useState(1);
     const [timelineFilter, setTimelineFilter] = useState('all');
     const [notificationPage, setNotificationPage] = useState(1);
-    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report' | 'recommendations' | 'predictions' | 'risk' | 'insight'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'notifications' | 'timeline' | 'report' | 'recommendations' | 'predictions' | 'risk' | 'insight' | 'interventions'>('overview');
 
     // ─── Phase 5B.3C: AI Insight State ───────────────────────────────────────
     const [insightLoading, setInsightLoading] = useState(false);
@@ -281,6 +281,18 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
             return response.data;
         },
         staleTime: 30000
+    });
+
+    // 9. Phase 5B.4A — Deterministic Intervention Plans
+    const { data: interventionsData, isLoading: isInterventionsLoading, isError: isInterventionsError, refetch: refetchInterventions } = useQuery({
+        queryKey: ['academicInterventions', role],
+        queryFn: async () => {
+            const response = await api.get('/intelligence/interventions');
+            return response.data;
+        },
+        staleTime: 15000,
+        // Only fetch when the tab is active to avoid unnecessary load
+        enabled: activeTab === 'interventions',
     });
 
     // ─── Phase 5B.3C: Generate AI Explanation ────────────────────────────────
@@ -395,6 +407,7 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
     const tabs = [
         { id: 'overview', label: 'Hub Dashboard' },
         { id: 'insight', label: 'AI Insight' },
+        { id: 'interventions', label: 'Action Plan' },
         { id: 'recommendations', label: 'AI Recommendations' },
         { id: 'predictions', label: 'Predictions' },
         { id: 'risk', label: 'Risk Assessment' },
@@ -814,6 +827,37 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                                 </div>
                             </div>
                         )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* ─── TAB: ACTION PLAN / INTERVENTIONS (Phase 5B.4A) ─────────── */}
+            {activeTab === 'interventions' && (
+                <Card className="bg-white/40 dark:bg-dark-card/30 border border-border dark:border-dark-border animate-fadeIn">
+                    <CardHeader>
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <CardTitle className="text-sm font-bold flex items-center gap-1.5 font-serif text-primary dark:text-primary-300">
+                                    <Clipboard className="h-4 w-4" /> Adaptive Intervention Engine
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                    Deterministic action plans generated from live MongoDB intelligence.
+                                    No AI hallucination — every intervention is traceable to a real metric.
+                                </CardDescription>
+                            </div>
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/20 text-primary dark:text-primary-300 select-none">
+                                Phase 5B.4A · Deterministic
+                            </span>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-2">
+                        <InterventionPanel
+                            isLoading={isInterventionsLoading}
+                            isError={isInterventionsError}
+                            data={interventionsData}
+                            role={role}
+                            onRefetch={refetchInterventions}
+                        />
                     </CardContent>
                 </Card>
             )}
@@ -1528,6 +1572,322 @@ export const AcademicIntelligence: React.FC<AcademicIntelligenceProps> = ({ role
                     )}
                 </Card>
             )}
+        </div>
+    );
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PHASE 5B.4A — INTERVENTION PANEL HELPERS (inline, no external deps needed)
+// ──────────────────────────────────────────────────────────────────────────────
+
+const getPriorityStyles = (priority: string) => {
+    switch (priority) {
+        case 'CRITICAL':
+            return {
+                badge: 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-300',
+                border: 'border-l-rose-500',
+                accent: 'text-rose-500',
+                glow: 'shadow-rose-500/10',
+                dot: 'bg-rose-500 animate-pulse',
+            };
+        case 'HIGH':
+            return {
+                badge: 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-300',
+                border: 'border-l-amber-500',
+                accent: 'text-amber-500',
+                glow: 'shadow-amber-500/10',
+                dot: 'bg-amber-500',
+            };
+        case 'MEDIUM':
+            return {
+                badge: 'bg-blue-500/15 border-blue-500/30 text-blue-600 dark:text-blue-300',
+                border: 'border-l-blue-500',
+                accent: 'text-blue-500',
+                glow: 'shadow-blue-500/10',
+                dot: 'bg-blue-500',
+            };
+        default:
+            return {
+                badge: 'bg-slate-500/10 border-slate-500/20 text-slate-500 dark:text-slate-400',
+                border: 'border-l-slate-400',
+                accent: 'text-slate-400',
+                glow: '',
+                dot: 'bg-slate-400',
+            };
+    }
+};
+
+const getTrendIcon = (trend: string) => {
+    if (trend === 'UP' || trend === 'UPWARD') return '↑';
+    if (trend === 'DOWN' || trend === 'DOWNWARD') return '↓';
+    return '→';
+};
+
+const getTrendColor = (trend: string) => {
+    if (trend === 'UP' || trend === 'UPWARD') return 'text-emerald-500';
+    if (trend === 'DOWN' || trend === 'DOWNWARD') return 'text-rose-500';
+    return 'text-slate-400';
+};
+
+const getSourceLabel = (source: string): string => {
+    switch (source) {
+        case 'health_engine': return 'Academic Health Engine';
+        case 'risk_engine': return 'Risk Assessment Engine';
+        case 'prediction_engine': return 'Predictive Intelligence Engine';
+        case 'smart_alert': return 'Smart Alert Engine';
+        default: return source;
+    }
+};
+
+// ──────────────────────────────────────────────────────────────────────────────
+// INTERVENTION PANEL — rendered inside AcademicIntelligence as a named export
+// for isolation. Accepts the query state props passed down.
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface InterventionPanelProps {
+    isLoading: boolean;
+    isError: boolean;
+    data: any;
+    role: 'student' | 'faculty' | 'admin';
+    onRefetch: () => void;
+}
+
+export const InterventionPanel: React.FC<InterventionPanelProps> = ({ isLoading, isError, data, role, onRefetch }) => {
+    const interventions: any[] = data?.interventions ?? [];
+    const generatedAt: string | undefined = data?.generatedAt;
+
+    const roleLabel = role === 'student' ? 'Student' : role === 'faculty' ? 'Faculty' : 'Institutional';
+
+    // ── Loading skeleton ────────────────────────────────────────
+    if (isLoading) {
+        return (
+            <div className="space-y-4 py-2">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="h-5 w-48 bg-slate-200 dark:bg-dark-hover animate-pulse rounded" />
+                    <div className="h-4 w-28 bg-slate-200 dark:bg-dark-hover animate-pulse rounded" />
+                </div>
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="border-l-4 border-slate-300 dark:border-slate-600 rounded-xl p-5 space-y-3 bg-slate-100/50 dark:bg-dark-card/30 animate-pulse">
+                        <div className="flex items-center justify-between">
+                            <div className="h-4 w-32 bg-slate-200 dark:bg-dark-hover rounded" />
+                            <div className="h-4 w-16 bg-slate-200 dark:bg-dark-hover rounded-full" />
+                        </div>
+                        <div className="h-3 w-full bg-slate-200 dark:bg-dark-hover rounded" />
+                        <div className="h-3 w-5/6 bg-slate-200 dark:bg-dark-hover rounded" />
+                        <div className="grid grid-cols-3 gap-3 pt-1">
+                            <div className="h-10 bg-slate-200 dark:bg-dark-hover rounded-lg" />
+                            <div className="h-10 bg-slate-200 dark:bg-dark-hover rounded-lg" />
+                            <div className="h-10 bg-slate-200 dark:bg-dark-hover rounded-lg" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // ── Error state ─────────────────────────────────────────────
+    if (isError) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 space-y-4 text-center">
+                <div className="h-14 w-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                    <AlertOctagon className="h-7 w-7 text-rose-500" />
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-text-primary dark:text-gray-200">Intervention engine unavailable</p>
+                    <p className="text-xs text-text-secondary dark:text-slate-400 mt-1 max-w-xs">
+                        The intervention analysis could not be loaded. Your data is safe — please retry.
+                    </p>
+                </div>
+                <button
+                    onClick={onRefetch}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary dark:text-primary-300 text-xs font-bold hover:bg-primary/20 transition-colors"
+                >
+                    <RefreshCw className="h-3.5 w-3.5" /> Retry Analysis
+                </button>
+            </div>
+        );
+    }
+
+    // ── Empty state ─────────────────────────────────────────────
+    if (!isLoading && interventions.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 space-y-4 text-center">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-emerald-500" />
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">You're currently on track.</p>
+                    <p className="text-xs text-text-secondary dark:text-slate-400 mt-1 max-w-xs">
+                        No intervention is required at this time. All academic health indicators are within acceptable parameters. Keep it up!
+                    </p>
+                </div>
+                {generatedAt && (
+                    <p className="text-[10px] text-text-secondary dark:text-slate-500 flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        Analysed at {new Date(generatedAt).toLocaleTimeString()}
+                    </p>
+                )}
+            </div>
+        );
+    }
+
+    // ── Populated state ──────────────────────────────────────────
+    return (
+        <div className="space-y-5">
+            {/* Panel header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h3 className="text-sm font-extrabold text-text-primary dark:text-gray-200 flex items-center gap-2">
+                        <Clipboard className="h-4 w-4 text-primary dark:text-primary-300" />
+                        {roleLabel} Action Plan
+                    </h3>
+                    <p className="text-[11px] text-text-secondary dark:text-slate-400 mt-0.5">
+                        {interventions.length} deterministic intervention{interventions.length !== 1 ? 's' : ''} generated from live MongoDB intelligence.
+                        {generatedAt && (
+                            <span className="ml-2 opacity-70">· {new Date(generatedAt).toLocaleTimeString()}</span>
+                        )}
+                    </p>
+                </div>
+                <button
+                    onClick={onRefetch}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/8 border border-primary/20 text-primary dark:text-primary-300 text-[10px] font-bold hover:bg-primary/15 transition-colors self-start"
+                >
+                    <RefreshCw className="h-3 w-3" /> Refresh
+                </button>
+            </div>
+
+            {/* Priority legend */}
+            <div className="flex flex-wrap gap-2 text-[9px] font-bold">
+                {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(p => {
+                    const s = getPriorityStyles(p);
+                    return (
+                        <span key={p} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${s.badge}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+                            {p}
+                        </span>
+                    );
+                })}
+                <span className="text-[9px] text-text-secondary dark:text-slate-500 self-center ml-1">Sorted highest priority first</span>
+            </div>
+
+            {/* Intervention cards */}
+            <div className="space-y-4">
+                {interventions.map((item: any, idx: number) => {
+                    const styles = getPriorityStyles(item.priority);
+                    return (
+                        <div
+                            key={item.id ?? idx}
+                            id={`intervention-${item.id ?? idx}`}
+                            className={`relative border-l-4 ${styles.border} rounded-xl bg-white/40 dark:bg-dark-card/35 border border-border dark:border-dark-border backdrop-blur-sm shadow-subtle ${styles.glow} transition-all duration-300 hover:shadow-md hover:scale-[1.005] group overflow-hidden`}
+                        >
+                            {/* Card inner */}
+                            <div className="p-5 space-y-4">
+
+                                {/* Top row: priority + title + category */}
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                                        <span className={`h-2 w-2 rounded-full mt-1.5 flex-shrink-0 ${styles.dot}`} />
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-extrabold text-text-primary dark:text-gray-200 leading-tight">
+                                                {item.title}
+                                            </p>
+                                            <p className="text-[10px] text-text-secondary dark:text-slate-400 mt-0.5">
+                                                {item.category}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[9px] font-extrabold tracking-wider flex-shrink-0 ${styles.badge}`}>
+                                        {item.priority}
+                                    </span>
+                                </div>
+
+                                {/* Metric grid */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {/* Current value */}
+                                    <div className="bg-white/30 dark:bg-dark-surface/30 border border-border/40 dark:border-dark-border/40 rounded-lg p-3 space-y-0.5">
+                                        <p className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">Current</p>
+                                        <p className={`text-sm font-extrabold ${styles.accent}`}>
+                                            {typeof item.currentValue === 'number' ? `${item.currentValue}%` : item.currentValue}
+                                        </p>
+                                    </div>
+
+                                    {/* Target value */}
+                                    <div className="bg-white/30 dark:bg-dark-surface/30 border border-border/40 dark:border-dark-border/40 rounded-lg p-3 space-y-0.5">
+                                        <p className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">Target</p>
+                                        <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                                            {item.targetValue !== null && item.targetValue !== undefined ? `${item.targetValue}%` : '—'}
+                                        </p>
+                                    </div>
+
+                                    {/* Trend */}
+                                    <div className="bg-white/30 dark:bg-dark-surface/30 border border-border/40 dark:border-dark-border/40 rounded-lg p-3 space-y-0.5">
+                                        <p className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">Trend</p>
+                                        <p className={`text-sm font-extrabold flex items-center gap-1 ${getTrendColor(item.trend)}`}>
+                                            <span>{getTrendIcon(item.trend)}</span>
+                                            <span className="text-[10px]">{item.trend ?? 'STABLE'}</span>
+                                        </p>
+                                    </div>
+
+                                    {/* Risk */}
+                                    <div className="bg-white/30 dark:bg-dark-surface/30 border border-border/40 dark:border-dark-border/40 rounded-lg p-3 space-y-0.5">
+                                        <p className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">Risk</p>
+                                        <p className={`text-[10px] font-extrabold ${
+                                            item.riskLevel === 'HIGH' ? 'text-rose-500' :
+                                            item.riskLevel === 'MEDIUM' ? 'text-amber-500' :
+                                            'text-emerald-500'
+                                        }`}>
+                                            {item.riskLevel ?? '—'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Reason */}
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-bold text-text-secondary dark:text-slate-400 uppercase tracking-wider">Reason</p>
+                                    <p className="text-[11px] text-text-secondary dark:text-slate-300 leading-relaxed">
+                                        {item.reason}
+                                    </p>
+                                </div>
+
+                                {/* Recommended action */}
+                                <div className="border-t border-border/30 dark:border-dark-border/30 pt-3 space-y-1">
+                                    <p className="text-[9px] font-bold text-primary dark:text-primary-300 uppercase tracking-wider flex items-center gap-1">
+                                        <Award className="h-3 w-3" /> Recommended Action
+                                    </p>
+                                    <p className="text-[11px] text-text-primary dark:text-gray-300 leading-relaxed font-medium">
+                                        {item.recommendation}
+                                    </p>
+                                </div>
+
+                                {/* Source traceability */}
+                                <div className="flex items-center gap-2 text-[9px] text-text-secondary dark:text-slate-500 border-t border-border/20 dark:border-dark-border/20 pt-2">
+                                    <Info className="h-3 w-3 flex-shrink-0" />
+                                    <span>
+                                        Source: <span className="font-semibold text-text-secondary dark:text-slate-400">{getSourceLabel(item.source)}</span>
+                                        {' · '}
+                                        Metric: <span className="font-semibold text-text-secondary dark:text-slate-400 font-mono">{item.sourceMetric}</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Priority accent glow bar at top */}
+                            <div className={`absolute top-0 left-0 right-0 h-0.5 opacity-60 ${
+                                item.priority === 'CRITICAL' ? 'bg-gradient-to-r from-rose-500 to-pink-500' :
+                                item.priority === 'HIGH' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                                item.priority === 'MEDIUM' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                                'bg-gradient-to-r from-slate-400 to-slate-500'
+                            }`} />
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Footer note */}
+            <p className="text-[10px] text-text-secondary dark:text-slate-500 text-center pt-2 flex items-center justify-center gap-1.5">
+                <Shield className="h-3 w-3" />
+                All interventions are generated deterministically from live MongoDB data.
+                No AI hallucination. No fabricated metrics.
+            </p>
         </div>
     );
 };
