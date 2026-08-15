@@ -22,6 +22,8 @@
 
 import { calculateHealthScores, getAcademicRisk, getAlerts } from './intelligence.service.js';
 import { generatePredictions } from './prediction.service.js';
+import InterventionAction, { IInterventionAction, InterventionActionStatus } from '../models/interventionAction.model.js';
+import { logTimelineEvent } from '../utils/timelineLogger.js';
 
 // =========================================================
 // TYPES & INTERFACES
@@ -756,3 +758,245 @@ export const generateInterventions = async (
     setCache(cacheKey, result);
     return result;
 };
+
+// =========================================================
+// PHASE 5B.4B — LIFECYCLE SERVICE FUNCTIONS
+// =========================================================
+
+export const canTransition = (currentStatus: InterventionActionStatus, newStatus: InterventionActionStatus): boolean => {
+    if (currentStatus === newStatus) return true;
+
+    switch (currentStatus) {
+        case 'PENDING':
+            return ['ACKNOWLEDGED', 'DISMISSED', 'EXPIRED'].includes(newStatus);
+        case 'ACKNOWLEDGED':
+            return ['IN_PROGRESS', 'DISMISSED', 'EXPIRED'].includes(newStatus);
+        case 'IN_PROGRESS':
+            return ['COMPLETED', 'DISMISSED', 'EXPIRED'].includes(newStatus);
+        case 'COMPLETED':
+        case 'DISMISSED':
+        case 'EXPIRED':
+            return false;
+        default:
+            return false;
+    }
+};
+
+export const syncAndGetActiveInterventions = async (
+    userId: string,
+    role: 'student' | 'faculty' | 'admin'
+): Promise<any> => {
+    // 1. Call 5B.4A generated interventions
+    const engineResult = await generateInterventions(userId, role);
+    const generatedList = engineResult.interventions || [];
+
+    // 2. Fetch existing active actions from DB
+    const activeActions = await InterventionAction.find({
+        user: userId,
+        status: { $in: ['PENDING', 'ACKNOWLEDGED', 'IN_PROGRESS'] }
+    });
+
+    const generatedIds = new Set(generatedList.map(g => g.id));
+
+    // 3. Mark active actions as EXPIRED if they are no longer recommended by the engine
+    for (const action of activeActions) {
+        if (!generatedIds.has(action.sourceInterventionId)) {
+            action.status = 'EXPIRED';
+            await action.save();
+
+            await logTimelineEvent({
+                userId,
+                role,
+                activityType: 'INTERVENTION_EXPIRED',
+                module: 'intelligence',
+                title: `Expired: ${action.title}`,
+                description: `The intervention was resolved automatically.`,
+                icon: 'check-circle',
+                color: 'emerald'
+            });
+        }
+    }
+
+    // 4. Create new PENDING actions for newly recommended interventions
+    for (const gen of generatedList) {
+        const existingActive = activeActions.find(
+            act => act.sourceInterventionId === gen.id && ['PENDING', 'ACKNOWLEDGED', 'IN_PROGRESS'].includes(act.status)
+        );
+
+        if (!existingActive) {
+            await InterventionAction.create({
+                user: userId,
+                sourceInterventionId: gen.id,
+                role: gen.role,
+                title: gen.title,
+                description: gen.description,
+                category: gen.category,
+                priority: gen.priority,
+                source: gen.source,
+                sourceMetric: gen.sourceMetric,
+                currentValue: gen.currentValue,
+                targetValue: gen.targetValue,
+                reason: gen.reason,
+                recommendation: gen.recommendation,
+                trend: gen.trend,
+                riskLevel: gen.riskLevel,
+                status: 'PENDING'
+            });
+
+            await logTimelineEvent({
+                userId,
+                role,
+                activityType: 'INTERVENTION_CREATED',
+                module: 'intelligence',
+                title: `New Action Plan: ${gen.title}`,
+                description: gen.reason,
+                icon: 'bell',
+                color: 'blue'
+            });
+        } else {
+            // Keep active interventions' metrics in sync with live MongoDB values
+            existingActive.currentValue = gen.currentValue;
+            existingActive.trend = gen.trend;
+            existingActive.riskLevel = gen.riskLevel;
+            existingActive.reason = gen.reason;
+            existingActive.description = gen.description;
+            existingActive.recommendation = gen.recommendation;
+            await existingActive.save();
+        }
+    }
+
+    // 5. Query and return current active actions from DB
+    const finalActive = await InterventionAction.find({
+        user: userId,
+        status: { $in: ['PENDING', 'ACKNOWLEDGED', 'IN_PROGRESS'] }
+    });
+
+    const PRIORITY_ORDER_VAL: Record<string, number> = {
+        CRITICAL: 0,
+        HIGH: 1,
+        MEDIUM: 2,
+        LOW: 3
+    };
+    finalActive.sort((a, b) => PRIORITY_ORDER_VAL[a.priority] - PRIORITY_ORDER_VAL[b.priority]);
+
+    return {
+        success: true,
+        role,
+        generatedAt: new Date().toISOString(),
+        interventionCount: finalActive.length,
+        interventions: finalActive
+    };
+};
+
+export const getHistoricalInterventions = async (
+    userId: string,
+    role: 'student' | 'faculty' | 'admin',
+    page: number = 1,
+    limit: number = 5
+): Promise<any> => {
+    const query = {
+        user: userId,
+        status: { $in: ['COMPLETED', 'DISMISSED', 'EXPIRED'] }
+    };
+
+    const total = await InterventionAction.countDocuments(query);
+    const skip = (page - 1) * limit;
+
+    const interventions = await InterventionAction.find(query)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    return {
+        success: true,
+        role,
+        interventions,
+        pagination: {
+            total,
+            page,
+            limit,
+            pages: Math.ceil(total / limit)
+        }
+    };
+};
+
+export const updateInterventionStatus = async (
+    userId: string,
+    role: 'student' | 'faculty' | 'admin',
+    actionId: string,
+    newStatus: InterventionActionStatus
+): Promise<IInterventionAction> => {
+    // 1. Fetch action
+    const action = await InterventionAction.findById(actionId);
+    if (!action) {
+        throw { status: 404, message: 'Intervention action not found' };
+    }
+
+    // 2. Validate Security (RBAC)
+    // Student & Faculty: Own actions only. Admin: Institutional access.
+    if (role !== 'admin' && action.user.toString() !== userId) {
+        throw { status: 403, message: 'Access denied: Cannot manipulate another user\'s intervention' };
+    }
+
+    // 3. Validate Transition
+    if (!canTransition(action.status, newStatus)) {
+        throw { status: 400, message: `Invalid status transition from ${action.status} to ${newStatus}` };
+    }
+
+    // 4. Update status and matching timestamps
+    action.status = newStatus;
+    const now = new Date();
+
+    if (newStatus === 'ACKNOWLEDGED') {
+        action.acknowledgedAt = now;
+    } else if (newStatus === 'IN_PROGRESS') {
+        action.startedAt = now;
+    } else if (newStatus === 'COMPLETED') {
+        action.completedAt = now;
+    } else if (newStatus === 'DISMISSED') {
+        action.dismissedAt = now;
+    }
+
+    await action.save();
+
+    // 5. Log Timeline Event
+    let activityType = 'INTERVENTION_UPDATED';
+    let timelineColor = 'slate';
+    let timelineIcon = 'activity';
+
+    if (newStatus === 'ACKNOWLEDGED') {
+        activityType = 'INTERVENTION_ACKNOWLEDGED';
+        timelineColor = 'blue';
+        timelineIcon = 'check';
+    } else if (newStatus === 'IN_PROGRESS') {
+        activityType = 'INTERVENTION_STARTED';
+        timelineColor = 'amber';
+        timelineIcon = 'clock';
+    } else if (newStatus === 'COMPLETED') {
+        activityType = 'INTERVENTION_COMPLETED';
+        timelineColor = 'emerald';
+        timelineIcon = 'check-circle';
+    } else if (newStatus === 'DISMISSED') {
+        activityType = 'INTERVENTION_DISMISSED';
+        timelineColor = 'slate';
+        timelineIcon = 'trash-2';
+    }
+
+    await logTimelineEvent({
+        userId: action.user.toString(),
+        role: action.role,
+        activityType,
+        module: 'intelligence',
+        title: `Intervention ${newStatus.replace('_', ' ')}: ${action.title}`,
+        description: `Status updated to ${newStatus}.`,
+        icon: timelineIcon,
+        color: timelineColor,
+        metadata: {
+            interventionId: action._id,
+            sourceMetric: action.sourceMetric
+        }
+    });
+
+    return action;
+};
+

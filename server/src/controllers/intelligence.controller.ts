@@ -14,7 +14,8 @@ import {
     deleteNotification,
     getAcademicRisk
 } from '../services/intelligence.service.js';
-import { generateInterventions } from '../services/intervention.service.js';
+import { generateInterventions, syncAndGetActiveInterventions, getHistoricalInterventions, updateInterventionStatus } from '../services/intervention.service.js';
+import InterventionAction from '../models/interventionAction.model.js';
 
 /**
  * @desc    Get complete intelligence analytics package for user dashboard
@@ -313,11 +314,106 @@ export const getUserInterventions = async (req: AuthenticatedRequest, res: Respo
         // Never trust client-provided role values.
         const role = req.user.role as 'student' | 'faculty' | 'admin';
 
-        const result = await generateInterventions(userId, role);
+        const result = await syncAndGetActiveInterventions(userId, role);
 
         res.status(200).json(result);
     } catch (error: any) {
         // Do not expose internal stack traces
-        res.status(500).json({ success: false, message: 'Intervention engine encountered an error. Please try again.' });
+        res.status(error.status || 500).json({ success: false, message: error.message || 'Intervention engine encountered an error. Please try again.' });
     }
 };
+
+/**
+ * @desc    Phase 5B.4B — Get historical (completed/dismissed/expired) intervention plans for the authenticated user
+ * @route   GET /api/intelligence/interventions/history
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getUserInterventionsHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 5;
+
+        const result = await getHistoricalInterventions(userId, role, page, limit);
+
+        res.status(200).json(result);
+    } catch (error: any) {
+        res.status(error.status || 500).json({ success: false, message: error.message || 'Failed to retrieve historical interventions.' });
+    }
+};
+
+/**
+ * @desc    Phase 5B.4B — Get a single intervention action by ID with security checks
+ * @route   GET /api/intelligence/interventions/:id
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getInterventionById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+        const { id } = req.params;
+
+        const action = await InterventionAction.findById(id);
+        if (!action) {
+            res.status(404).json({ success: false, message: 'Intervention action not found' });
+            return;
+        }
+
+        // Validate Security (RBAC)
+        if (role !== 'admin' && action.user.toString() !== userId) {
+            res.status(403).json({ success: false, message: 'Access denied: Cannot view another user\'s intervention' });
+            return;
+        }
+
+        res.status(200).json({ success: true, intervention: action });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message || 'Intervention engine encountered an error. Please try again.' });
+    }
+};
+
+const updateStatusController = async (req: AuthenticatedRequest, res: Response, targetStatus: any): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+        const { id } = req.params;
+
+        const result = await updateInterventionStatus(userId, role, id, targetStatus);
+
+        res.status(200).json({ success: true, intervention: result });
+    } catch (error: any) {
+        res.status(error.status || 500).json({ success: false, message: error.message || 'Failed to update status.' });
+    }
+};
+
+export const acknowledgeIntervention = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    await updateStatusController(req, res, 'ACKNOWLEDGED');
+};
+
+export const startIntervention = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    await updateStatusController(req, res, 'IN_PROGRESS');
+};
+
+export const completeIntervention = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    await updateStatusController(req, res, 'COMPLETED');
+};
+
+export const dismissIntervention = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    await updateStatusController(req, res, 'DISMISSED');
+};
+
