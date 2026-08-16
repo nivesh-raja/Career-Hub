@@ -89,10 +89,12 @@ const computeTrend = async (model: any, matchFilter: any): Promise<'UP' | 'DOWN'
  * Weights: Assignments 30%, Quiz 20%, AI Usage 20%, Study 15%, Consistency 15%
  * =========================================================
  */
-export const calculateHealthScores = async (userId: string, role: string) => {
+export const calculateHealthScores = async (userId: string, role: string, bypassCache: boolean = false) => {
     const cacheKey = `scores_v2_${userId}_${role}`;
-    const cached = getCachedData(cacheKey);
-    if (cached) return cached;
+    if (!bypassCache) {
+        const cached = getCachedData(cacheKey);
+        if (cached) return cached;
+    }
 
     const uid = new mongoose.Types.ObjectId(userId);
     const lastUpdated = new Date().toISOString();

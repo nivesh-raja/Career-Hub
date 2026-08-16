@@ -15,6 +15,7 @@ import {
     getAcademicRisk
 } from '../services/intelligence.service.js';
 import { generateInterventions, syncAndGetActiveInterventions, getHistoricalInterventions, updateInterventionStatus } from '../services/intervention.service.js';
+import { evaluateInterventionOutcome, getInterventionOutcomes } from '../services/interventionEffectiveness.service.js';
 import InterventionAction from '../models/interventionAction.model.js';
 
 /**
@@ -415,5 +416,51 @@ export const completeIntervention = async (req: AuthenticatedRequest, res: Respo
 
 export const dismissIntervention = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     await updateStatusController(req, res, 'DISMISSED');
+};
+
+/**
+ * @desc    Phase 5B.4C — Evaluate and fetch the outcome of a completed intervention action
+ * @route   POST /api/intelligence/interventions/:id/evaluate
+ * @route   GET /api/intelligence/interventions/:id/outcome
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const evaluateOutcomeController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+        const { id } = req.params;
+
+        const result = await evaluateInterventionOutcome(userId, role, id);
+        res.status(200).json({ success: true, outcome: result });
+    } catch (error: any) {
+        res.status(error.status || 500).json({ success: false, message: error.message || 'Outcome analysis engine encountered an error. Please try again.' });
+    }
+};
+
+/**
+ * @desc    Phase 5B.4C — Retrieve all intervention outcomes for the authenticated user scope
+ * @route   GET /api/intelligence/interventions/outcomes
+ * @access  Private (Student, Faculty, Admin)
+ */
+export const getOutcomesController = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        if (!req.user) {
+            res.status(401).json({ success: false, message: 'Not authenticated' });
+            return;
+        }
+
+        const userId = req.user._id.toString();
+        const role = req.user.role as 'student' | 'faculty' | 'admin';
+
+        const result = await getInterventionOutcomes(userId, role);
+        res.status(200).json({ success: true, outcomes: result });
+    } catch (error: any) {
+        res.status(error.status || 500).json({ success: false, message: error.message || 'Failed to retrieve outcomes.' });
+    }
 };
 

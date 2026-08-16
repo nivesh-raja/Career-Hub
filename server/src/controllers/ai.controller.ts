@@ -1,6 +1,7 @@
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 import { callAI, runHealthCheck } from '../services/ai.service.js';
+import { mapAIErrorToMessage } from '../services/openrouter.service.js';
 import { processAndEmbedDocument, retrieveRelevantChunks } from '../services/document.service.js';
 import AIChat from '../models/aiChat.model.js';
 import AIDocument from '../models/aiDocument.model.js';
@@ -37,7 +38,7 @@ export const chat = async (req: AuthenticatedRequest, res: Response): Promise<vo
 
     try {
         const role = req.user?.role || 'student';
-        let classification = await classifyIntent(prompt, role);
+        let classification = await classifyIntent(prompt, role, String(req.user?._id));
 
         if (classification.intent !== 'general-chat') {
             let { intent, params } = classification;
@@ -80,64 +81,87 @@ export const chat = async (req: AuthenticatedRequest, res: Response): Promise<vo
                 let responseText = '';
                 let sourceDocs: string[] = [];
 
-                if (intent === 'generate-notes') {
-                    doc = await generateNotesService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
-                    responseText = `I've generated detailed notes for you!\n\n${doc.content}`;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'generate-flashcards') {
-                    doc = await generateFlashcardsService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
-                    responseText = `I've created ${doc.cards.length} study flashcards for you on **${doc.topic}**! You can find them saved in your Library.`;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'generate-quiz') {
-                    doc = await generateQuizService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
-                    responseText = `I've generated a quiz with ${doc.questions.length} questions on **${doc.topic}**! Try answering them in the interactive study suite.`;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'generate-study-plan') {
-                    doc = await generateStudyPlanService({
-                        examDate: params.examDate || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
-                        subjects: params.subjects?.length ? params.subjects : ['General Coursework'],
-                        dailyStudyHours: Number(params.dailyStudyHours) || 4,
-                        currentProgress: params.currentProgress || 'N/A',
-                        userId: String(req.user?._id)
-                    });
-                    responseText = `I've compiled a study planner starting today. Key sections:\n\n### Daily Strategy\n${doc.planData.dailyPlan}\n\n### Milestones\n${doc.planData.weeklyPlan}`;
-                } else if (intent === 'assignment-helper') {
-                    doc = await generateAssignmentHelperService({ assignmentText: params.assignmentText || prompt, userId: String(req.user?._id) });
-                    responseText = doc.content;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'faculty-assignment-generator' && (role === 'faculty' || role === 'admin')) {
-                    doc = await generateFacultyAssignmentService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
-                    responseText = doc.content;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'question-paper-generator' && (role === 'faculty' || role === 'admin')) {
-                    doc = await generateQuestionPaperService({ ...params, subject: params.subject || 'General Study', userId: String(req.user?._id) });
-                    responseText = doc.content;
-                    sourceDocs = doc.sourceDocuments || [];
-                } else if (intent === 'lesson-planner' && (role === 'faculty' || role === 'admin')) {
-                    doc = await generateLessonPlanService({ ...params, subject: params.subject || 'Syllabus Course', topics: params.topics || [prompt], userId: String(req.user?._id) });
-                    responseText = doc.weeklyPlan;
-                } else if (intent === 'notice-report-generator' && role === 'admin') {
-                    doc = await generateNoticeReportService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
-                    responseText = doc.content;
-                }
+                try {
+                    if (intent === 'generate-notes') {
+                        doc = await generateNotesService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                        responseText = `I've generated detailed notes for you!\n\n${doc.content}`;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'generate-flashcards') {
+                        doc = await generateFlashcardsService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                        responseText = `I've created ${doc.cards.length} study flashcards for you on **${doc.topic}**! You can find them saved in your Library.`;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'generate-quiz') {
+                        doc = await generateQuizService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                        responseText = `I've generated a quiz with ${doc.questions.length} questions on **${params.topic || prompt}**! Try answering them in the interactive study suite.`;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'generate-study-plan') {
+                        doc = await generateStudyPlanService({
+                            examDate: params.examDate || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+                            subjects: params.subjects?.length ? params.subjects : ['General Coursework'],
+                            dailyStudyHours: Number(params.dailyStudyHours) || 4,
+                            currentProgress: params.currentProgress || 'N/A',
+                            userId: String(req.user?._id)
+                        });
+                        responseText = `I've compiled a study planner starting today. Key sections:\n\n### Daily Strategy\n${doc.planData.dailyPlan}\n\n### Milestones\n${doc.planData.weeklyPlan}`;
+                    } else if (intent === 'assignment-helper') {
+                        doc = await generateAssignmentHelperService({ assignmentText: params.assignmentText || prompt, userId: String(req.user?._id) });
+                        responseText = doc.content;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'faculty-assignment-generator' && (role === 'faculty' || role === 'admin')) {
+                        doc = await generateFacultyAssignmentService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                        responseText = doc.content;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'question-paper-generator' && (role === 'faculty' || role === 'admin')) {
+                        doc = await generateQuestionPaperService({ ...params, subject: params.subject || 'General Study', userId: String(req.user?._id) });
+                        responseText = doc.content;
+                        sourceDocs = doc.sourceDocuments || [];
+                    } else if (intent === 'lesson-planner' && (role === 'faculty' || role === 'admin')) {
+                        doc = await generateLessonPlanService({ ...params, subject: params.subject || 'Syllabus Course', topics: params.topics || [prompt], userId: String(req.user?._id) });
+                        responseText = doc.weeklyPlan;
+                    } else if (intent === 'notice-report-generator' && role === 'admin') {
+                        doc = await generateNoticeReportService({ ...params, topic: params.topic || prompt, userId: String(req.user?._id) });
+                        responseText = doc.content;
+                    }
 
-                if (doc) {
+                    if (doc) {
+                        const chatDoc = await AIChat.create({
+                            user: req.user?._id,
+                            prompt,
+                            response: responseText,
+                            role: req.user?.role,
+                            conversationTitle: `Generated: ${doc.title || intent}`,
+                            sourceDocuments: sourceDocs
+                        });
+                        await logActivity(req, req.user?.name || 'User', `AI Intent: ${intent}`, String(doc._id));
+                        res.status(200).json({
+                            success: true,
+                            intent,
+                            data: doc,
+                            response: responseText,
+                            chat: chatDoc,
+                            sourceDocuments: sourceDocs
+                        });
+                        return;
+                    }
+                } catch (generatorError: any) {
+                    console.error(`[AI Generator Error - ${intent}]:`, generatorError.message);
+                    const friendlyResponse = mapAIErrorToMessage(generatorError);
+                    
                     const chatDoc = await AIChat.create({
                         user: req.user?._id,
                         prompt,
-                        response: responseText,
+                        response: friendlyResponse,
                         role: req.user?.role,
-                        conversationTitle: `Generated: ${doc.title || intent}`,
-                        sourceDocuments: sourceDocs
+                        conversationTitle: `Error: ${intent}`,
+                        sourceDocuments: []
                     });
-                    await logActivity(req, req.user?.name || 'User', `AI Intent: ${intent}`, String(doc._id));
+                    
                     res.status(200).json({
                         success: true,
-                        intent,
-                        data: doc,
-                        response: responseText,
+                        intent: 'error-fallback',
+                        response: friendlyResponse,
                         chat: chatDoc,
-                        sourceDocuments: sourceDocs
+                        sourceDocuments: []
                     });
                     return;
                 }
@@ -183,14 +207,13 @@ Strict Domain & RAG Rules:
 
         let responseText = '';
         try {
-            responseText = await callAI(messages);
+            responseText = await callAI(messages, String(req.user?._id));
             if (sourceDocuments.length > 0) {
                 responseText += `\n\n---\n*📎 Sources: ${sourceDocuments.join(', ')}*`;
             }
         } catch (apiError: any) {
-            const code = apiError?.message?.match(/HTTP (\d+)/)?.[1] || 'unknown';
-            console.error(`[AI Error HTTP ${code}]:`, apiError.message);
-            responseText = `AI service is temporarily unavailable. Please try again later. (Error ${code})`;
+            console.error('[AI Chat Error]:', apiError.message);
+            responseText = mapAIErrorToMessage(apiError);
         }
 
         const chatDoc = await AIChat.create({
@@ -205,7 +228,7 @@ Strict Domain & RAG Rules:
 
         await logActivity(req, req.user?.name || 'User', 'AI Chat', String(req.user?.name));
         logTimelineEvent({ userId: String(req.user?._id), role: req.user?.role as any, activityType: 'ai_chat', module: 'ai', title: `AI Chat`, description: `Asked: "${prompt.substring(0, 60)}${prompt.length > 60 ? '...' : ''}".`, icon: 'message-circle', color: 'blue' });
-        res.status(200).json({ success: true, response: responseText, chat: chatDoc, sourceDocuments });
+        res.status(200).json({ success: true, response: responseText, chat: chatDoc, sourceDocuments, intent: 'general-chat' });
     } catch (error: any) {
         console.error('[Chat error]:', error.message);
         res.status(500).json({ success: false, message: error.message });

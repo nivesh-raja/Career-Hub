@@ -84,9 +84,7 @@ async function runTests() {
     console.log("\n--- [Test 2] Faculty/Admin specific content generation ---");
     // We already tested successful response in above, check if type matches
     console.log("adminQPaperRes data:", JSON.stringify(adminQPaperRes.data));
-    if (adminQPaperRes.data?.success) {
-        assertTest('QPaper Gen returns correct object', adminQPaperRes.data.questionPaper?.subject === 'Science');
-    }
+        assertTest('QPaper Gen returns correct object', adminQPaperRes.data.questionPaper?.title?.includes('Science'));
 
     console.log("\n--- [Test 3] Intent classification routing based on roles ---");
     // When student asks to create a question paper

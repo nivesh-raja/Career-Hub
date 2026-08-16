@@ -1666,6 +1666,16 @@ export const InterventionPanel: React.FC<InterventionPanelProps> = ({ isLoading,
         enabled: currentSubTab === 'history',
     });
 
+    const { data: outcomesData, isLoading: isOutcomesLoading, refetch: refetchOutcomes } = useQuery({
+        queryKey: ['academicInterventionsOutcomes', role],
+        queryFn: async () => {
+            const response = await api.get(`/intelligence/interventions/outcomes`);
+            return response.data;
+        },
+        staleTime: 15000,
+        enabled: currentSubTab === 'history',
+    });
+
     const handleStatusUpdate = async (actionId: string, transition: 'acknowledge' | 'start' | 'complete' | 'dismiss') => {
         if (actionLoadingId) return;
         setActionLoadingId(`${actionId}_${transition}`);
@@ -1675,6 +1685,7 @@ export const InterventionPanel: React.FC<InterventionPanelProps> = ({ isLoading,
             await onRefetch();
             if (currentSubTab === 'history') {
                 await refetchHistory();
+                await refetchOutcomes();
             }
         } catch (err: any) {
             const msg = err.response?.data?.message || `Failed to ${transition} action plan.`;
@@ -2067,6 +2078,101 @@ export const InterventionPanel: React.FC<InterventionPanelProps> = ({ isLoading,
                                             {item.recommendation}
                                         </p>
                                     </div>
+
+                                    {/* Observed Academic Outcome Section */}
+                                    {currentSubTab === 'history' && item.status === 'COMPLETED' && (() => {
+                                        const outcome = outcomesData?.outcomes?.find((o: any) => o.interventionId === item._id);
+                                        return (
+                                            <div className="border-t border-border/30 dark:border-dark-border/30 pt-3 space-y-2">
+                                                <p className="text-[9px] font-bold text-primary dark:text-primary-300 uppercase tracking-wider flex items-center gap-1">
+                                                    <TrendingUp className="h-3 w-3" /> Observed Academic Outcome
+                                                </p>
+                                                
+                                                {isOutcomesLoading ? (
+                                                    <div className="h-10 bg-slate-200/10 dark:bg-dark-hover/10 animate-pulse rounded-lg" />
+                                                ) : outcome ? (
+                                                    <div className="bg-white/20 dark:bg-dark-surface/20 border border-border/40 dark:border-dark-border/45 rounded-lg p-3 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] text-text-secondary dark:text-slate-400">
+                                                                Status:
+                                                            </span>
+                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                                                outcome.status === 'OBSERVED_IMPROVEMENT' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400' :
+                                                                outcome.status === 'OBSERVED_DECLINE' ? 'bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400' :
+                                                                outcome.status === 'AWAITING_MEASUREMENT' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                                                                'bg-slate-500/10 border border-slate-500/20 text-slate-500 dark:text-slate-400'
+                                                            }`}>
+                                                                {outcome.status === 'OBSERVED_IMPROVEMENT' && <TrendingUp className="h-2.5 w-2.5" />}
+                                                                {outcome.status === 'OBSERVED_DECLINE' && <TrendingDown className="h-2.5 w-2.5" />}
+                                                                {outcome.status === 'AWAITING_MEASUREMENT' && <Clock className="h-2.5 w-2.5 animate-spin" />}
+                                                                {outcome.status.replace(/_/g, ' ')}
+                                                            </span>
+                                                        </div>
+
+                                                        {outcome.status === 'AWAITING_MEASUREMENT' ? (
+                                                            <p className="text-[10px] text-text-secondary dark:text-slate-400 leading-normal">
+                                                                The observed outcome is currently awaiting the completion of the 7-day observation window. Metrics will be compared once the window has elapsed.
+                                                            </p>
+                                                        ) : outcome.status === 'INSUFFICIENT_DATA' ? (
+                                                            <p className="text-[10px] text-text-secondary dark:text-slate-400 leading-normal">
+                                                                Observed academic outcome could not be computed due to insufficient post-intervention metric snapshot data in MongoDB.
+                                                            </p>
+                                                        ) : (
+                                                            <div className="space-y-1">
+                                                                <div className="flex justify-between items-center text-[10px]">
+                                                                    <span className="text-text-secondary dark:text-slate-400">Baseline Metric:</span>
+                                                                    <span className="font-semibold text-text-primary dark:text-gray-250">
+                                                                        {outcome.baselineValue !== null ? `${outcome.baselineValue}%` : '—'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-[10px]">
+                                                                    <span className="text-text-secondary dark:text-slate-400">Observed Post-Intervention:</span>
+                                                                    <span className="font-semibold text-text-primary dark:text-gray-250">
+                                                                        {outcome.postValue !== null ? `${outcome.postValue}%` : '—'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-[10px] pt-1 border-t border-border/10 dark:border-dark-border/10">
+                                                                    <span className="text-text-secondary dark:text-slate-450 font-medium">Net Observed Delta:</span>
+                                                                    <span className={`font-bold ${
+                                                                        (outcome.delta || 0) > 0 ? 'text-emerald-500' :
+                                                                        (outcome.delta || 0) < 0 ? 'text-rose-500' :
+                                                                        'text-slate-400'
+                                                                    }`}>
+                                                                        {outcome.delta !== null ? `${outcome.delta >= 0 ? '+' : ''}${outcome.delta} percentage points` : '—'}
+                                                                    </span>
+                                                                </div>
+                                                                {outcome.baselineRiskLevel && outcome.postRiskLevel && (
+                                                                    <div className="flex justify-between items-center text-[10px]">
+                                                                        <span className="text-text-secondary dark:text-slate-450 font-medium">Observed Risk Shift:</span>
+                                                                        <span className="font-medium text-text-secondary dark:text-slate-350">
+                                                                            {outcome.baselineRiskLevel} → {outcome.postRiskLevel} ({outcome.riskChange === 'IMPROVED' ? 'Improved' : outcome.riskChange === 'DECLINED' ? 'Declined' : 'No Change'})
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-between bg-slate-500/5 border border-slate-500/10 rounded-lg p-2.5">
+                                                        <span className="text-[10px] text-text-secondary dark:text-slate-500">No outcome document found.</span>
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await api.post(`/intelligence/interventions/${item._id}/evaluate`);
+                                                                    refetchOutcomes();
+                                                                } catch (e) {
+                                                                    console.error(e);
+                                                                }
+                                                            }}
+                                                            className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-[9px] font-bold text-primary dark:text-primary-300 hover:bg-primary/25 cursor-pointer transition-colors"
+                                                        >
+                                                            Evaluate
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Source Traceability / Date details */}
                                     <div className="flex flex-wrap items-center justify-between gap-2 text-[9px] text-text-secondary dark:text-slate-500 pt-2 border-t border-border/20 dark:border-dark-border/20">

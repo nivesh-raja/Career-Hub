@@ -30,6 +30,7 @@ import {
 } from '../controllers/aiAcademic.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authorizeRole } from '../middleware/role.middleware.js';
+import { aiRateLimiter } from '../middleware/aiRateLimit.middleware.js';
 import multer from 'multer';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -40,7 +41,7 @@ router.get('/health', healthCheck);
 
 // Protected
 router.use(protect);
-router.post('/chat', chat);
+router.post('/chat', aiRateLimiter, chat);
 router.post('/upload', upload.single('file'), uploadDocument);
 router.get('/history', history);
 router.delete('/history/:id', deleteHistory);
@@ -49,28 +50,28 @@ router.get('/documents', listDocuments);
 router.delete('/documents/:id', deleteDocument);
 
 // Academic Tools (Student level)
-router.post('/notes', authorizeRole('student', 'faculty', 'admin'), generateNotes);
-router.post('/flashcards', authorizeRole('student', 'faculty', 'admin'), generateFlashcards);
-router.post('/quiz', authorizeRole('student', 'faculty', 'admin'), generateQuiz);
-router.post('/study-plan', authorizeRole('student', 'faculty', 'admin'), generateStudyPlan);
-router.post('/assignment', authorizeRole('student', 'faculty', 'admin'), generateAssignment);
+router.post('/notes', authorizeRole('student', 'faculty', 'admin'), aiRateLimiter, generateNotes);
+router.post('/flashcards', authorizeRole('student', 'faculty', 'admin'), aiRateLimiter, generateFlashcards);
+router.post('/quiz', authorizeRole('student', 'faculty', 'admin'), aiRateLimiter, generateQuiz);
+router.post('/study-plan', authorizeRole('student', 'faculty', 'admin'), aiRateLimiter, generateStudyPlan);
+router.post('/assignment', authorizeRole('student', 'faculty', 'admin'), aiRateLimiter, generateAssignment);
 
 // Faculty & Admin Academic tools
-router.post('/question-paper', authorizeRole('faculty', 'admin'), generateQuestionPaper);
-router.post('/lesson-plan', authorizeRole('faculty', 'admin'), generateLessonPlan);
-router.post('/study-material', authorizeRole('faculty', 'admin'), generateStudyMaterial);
-router.post('/rubric', authorizeRole('faculty', 'admin'), generateRubric);
-router.post('/classroom-assistant', authorizeRole('faculty', 'admin'), generateClassroomAssistant);
-router.post('/performance-summary', authorizeRole('faculty', 'admin'), generatePerformanceSummary);
-router.post('/announcement', authorizeRole('faculty', 'admin'), generateAnnouncement);
+router.post('/question-paper', authorizeRole('faculty', 'admin'), aiRateLimiter, generateQuestionPaper);
+router.post('/lesson-plan', authorizeRole('faculty', 'admin'), aiRateLimiter, generateLessonPlan);
+router.post('/study-material', authorizeRole('faculty', 'admin'), aiRateLimiter, generateStudyMaterial);
+router.post('/rubric', authorizeRole('faculty', 'admin'), aiRateLimiter, generateRubric);
+router.post('/classroom-assistant', authorizeRole('faculty', 'admin'), aiRateLimiter, generateClassroomAssistant);
+router.post('/performance-summary', authorizeRole('faculty', 'admin'), aiRateLimiter, generatePerformanceSummary);
+router.post('/announcement', authorizeRole('faculty', 'admin'), aiRateLimiter, generateAnnouncement);
 
 // Admin notices/reports
-router.post('/notice-report', authorizeRole('admin'), generateNoticeReport);
-router.post('/dept-analytics', authorizeRole('admin'), generateDeptAnalytics);
-router.post('/user-activity-sum', authorizeRole('admin'), generateUserActivitySum);
-router.post('/policy-gen', authorizeRole('admin'), generatePolicyGen);
-router.post('/dashboard-insights', authorizeRole('admin'), generateDashboardInsights);
-router.post('/institution-stats', authorizeRole('admin'), generateInstitutionStats);
+router.post('/notice-report', authorizeRole('admin'), aiRateLimiter, generateNoticeReport);
+router.post('/dept-analytics', authorizeRole('admin'), aiRateLimiter, generateDeptAnalytics);
+router.post('/user-activity-sum', authorizeRole('admin'), aiRateLimiter, generateUserActivitySum);
+router.post('/policy-gen', authorizeRole('admin'), aiRateLimiter, generatePolicyGen);
+router.post('/dashboard-insights', authorizeRole('admin'), aiRateLimiter, generateDashboardInsights);
+router.post('/institution-stats', authorizeRole('admin'), aiRateLimiter, generateInstitutionStats);
 
 // Global search and dynamic library CRUD
 router.get('/search', globalSearch);

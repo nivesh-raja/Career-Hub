@@ -840,6 +840,9 @@ export const syncAndGetActiveInterventions = async (
                 recommendation: gen.recommendation,
                 trend: gen.trend,
                 riskLevel: gen.riskLevel,
+                baselineValue: gen.currentValue,
+                baselineRiskLevel: gen.riskLevel,
+                baselineTrend: gen.trend,
                 status: 'PENDING'
             });
 
@@ -949,10 +952,25 @@ export const updateInterventionStatus = async (
 
     if (newStatus === 'ACKNOWLEDGED') {
         action.acknowledgedAt = now;
+        if (action.baselineValue === undefined || action.baselineValue === null) {
+            action.baselineValue = action.currentValue;
+            action.baselineRiskLevel = action.riskLevel;
+            action.baselineTrend = action.trend;
+        }
     } else if (newStatus === 'IN_PROGRESS') {
         action.startedAt = now;
+        if (action.baselineValue === undefined || action.baselineValue === null) {
+            action.baselineValue = action.currentValue;
+            action.baselineRiskLevel = action.riskLevel;
+            action.baselineTrend = action.trend;
+        }
     } else if (newStatus === 'COMPLETED') {
         action.completedAt = now;
+        if (action.baselineValue === undefined || action.baselineValue === null) {
+            action.baselineValue = action.currentValue;
+            action.baselineRiskLevel = action.riskLevel;
+            action.baselineTrend = action.trend;
+        }
     } else if (newStatus === 'DISMISSED') {
         action.dismissedAt = now;
     }

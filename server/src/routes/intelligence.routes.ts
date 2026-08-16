@@ -17,7 +17,9 @@ import {
     acknowledgeIntervention,
     startIntervention,
     completeIntervention,
-    dismissIntervention
+    dismissIntervention,
+    evaluateOutcomeController,
+    getOutcomesController
 } from '../controllers/intelligence.controller.js';
 import { generateIntelligenceExplanation } from '../controllers/explanation.controller.js';
 
@@ -33,10 +35,16 @@ router.get('/report', protect, getUserWeeklyReport);
 router.get('/recommendations', protect, getUserRecommendations);
 router.get('/predictions', protect, getUserPredictions);
 router.get('/risk', protect, getUserRiskAssessment);
+
+// Phase 5B.4C — Outcomes (Place before parameterised routes)
+router.get('/interventions/outcomes', protect, getOutcomesController);
+
 // Phase 5B.4A & 5B.4B — Deterministic Adaptive Intervention Lifecycle Engine
 router.get('/interventions', protect, getUserInterventions);
 router.get('/interventions/history', protect, getUserInterventionsHistory);
 router.get('/interventions/:id', protect, getInterventionById);
+router.get('/interventions/:id/outcome', protect, evaluateOutcomeController);
+router.post('/interventions/:id/evaluate', protect, evaluateOutcomeController);
 router.post('/interventions/:id/acknowledge', protect, acknowledgeIntervention);
 router.post('/interventions/:id/start', protect, startIntervention);
 router.post('/interventions/:id/complete', protect, completeIntervention);

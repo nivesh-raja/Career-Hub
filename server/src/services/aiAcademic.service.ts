@@ -71,10 +71,23 @@ Topic: ${topic}
 Notes Type: ${noteType} notes
 ${contextBlock ? `\nHere is context from my uploaded documents:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateNotesService failed: ${e.message}`);
+        content = `# Academic Study Notes: ${topic}
+**Subject**: ${subject || 'General'}
+**Chapter**: ${chapter || 'General'}
+**Status**: Provider Temporarily Unavailable
+
+AI study note generation for "${topic}" could not be completed because the upstream AI service is temporarily unavailable or rate-limited. Please try again shortly.
+
+Source Reference: 🌐 Provider Temporarily Unavailable`;
+    }
 
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
 
@@ -119,10 +132,23 @@ Rely on the provided document context if available.`;
 Difficulty: ${difficulty}
 ${contextBlock ? `\nHere is context from my uploaded documents:\n${contextBlock}` : ''}`;
 
-    const response = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let response = '';
+    try {
+        response = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateFlashcardsService failed: ${e.message}`);
+        response = JSON.stringify([
+            {
+                question: `[AI Provider Unavailable] Flashcard generation for "${topic}" is temporarily unavailable.`,
+                answer: `Please try generating flashcards again shortly when AI service availability resumes.`,
+                topic,
+                difficulty
+            }
+        ]);
+    }
 
     const parsedFlashcards = cleanJsonResponse(response);
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
@@ -151,7 +177,10 @@ export const generateQuizService = async (params: {
     topic: string;
     userId: string;
 }) => {
-    const { quizType, difficulty, questionsCount, topic, userId } = params;
+    const quizType = params.quizType || 'mcq';
+    const difficulty = params.difficulty || 'medium';
+    const questionsCount = params.questionsCount || (params as any).questionCount || 10;
+    const { topic, userId } = params;
     const { contextBlock, sourceDocuments } = await getRagContext(topic, userId);
 
     const systemPrompt = `You are an expert exam designer.
@@ -175,10 +204,23 @@ Prioritize information from the uploaded documents context if provided.`;
     const userPrompt = `Topic/Key terms: ${topic}
 ${contextBlock ? `\nDocument Context:\n${contextBlock}` : ''}`;
 
-    const response = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let response = '';
+    try {
+        response = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateQuizService failed: ${e.message}`);
+        response = JSON.stringify([
+            {
+                question: `[AI Service Busy] Unable to generate quiz questions for "${topic}" at this time.`,
+                options: ["Service Temporarily Busy", "Retry Request", "Check AI Health Status", "Contact Administrator"],
+                answer: "Service Temporarily Busy",
+                explanation: `The AI provider is temporarily unavailable or rate-limited. Please retry your quiz generation request.`
+            }
+        ]);
+    }
 
     let parsedQuestions = cleanJsonResponse(response);
     if (!Array.isArray(parsedQuestions)) {
@@ -235,10 +277,23 @@ Daily Hours: ${dailyStudyHours}
 Exam Date: ${examDate}
 Current Progress Details: ${currentProgress || 'Not defined'}`;
 
-    const response = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let response = '';
+    try {
+        response = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateStudyPlanService failed: ${e.message}`);
+        response = JSON.stringify({
+            dailyPlan: `### Service Notice\nAI study plan generation is temporarily unavailable. Please retry shortly.`,
+            weeklyPlan: `### Service Notice\nAI study plan generation is temporarily unavailable.`,
+            revisionCalendar: `### Service Notice\nPending AI service recovery.`,
+            priorityTopics: subjects,
+            remainingDaysAnalysis: `Service temporarily unavailable.`,
+            progressTracker: `- [ ] Retry study plan generation.`
+        });
+    }
 
     const planData = cleanJsonResponse(response);
 
@@ -291,10 +346,21 @@ Otherwise, append "Source Reference: 🌐 General AI Knowledge"`;
     const userPrompt = `Assignment description: ${assignmentText}
 ${contextBlock ? `\nContext from course documents:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateAssignmentHelperService failed: ${e.message}`);
+        content = `# Assignment Guide: ${assignmentText.substring(0, 50)}
+**Status**: Provider Temporarily Unavailable
+
+AI assignment assistance for this topic is temporarily unavailable because the upstream AI provider is busy or rate-limited. Please try again shortly.
+
+Source Reference: 🌐 Provider Temporarily Unavailable`;
+    }
 
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
 
@@ -338,10 +404,21 @@ Assignment Type: ${assignmentType}
 Difficulty: ${difficulty}
 ${contextBlock ? `\nRelevant class research:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateFacultyAssignmentService failed: ${e.message}`);
+        content = `# Assignment Sheet: ${subject} (${topic})
+**Difficulty**: ${difficulty}
+**Type**: ${assignmentType}
+**Status**: Provider Temporarily Unavailable
+
+Automated assignment generation for "${topic}" is temporarily unavailable due to upstream AI limits. Please retry in a few moments.`;
+    }
 
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
 
@@ -390,10 +467,31 @@ Bloom Focus: ${bloomTaxonomy}
 Question Marks Required: ${qTypes.join(', ')}
 ${contextBlock ? `\nIncorporate syllabus chunks:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateQuestionPaperService failed: ${e.message}`);
+        content = `# DIVISION I: QUESTION PAPER
+**Subject**: ${subject}
+**Exam Type**: ${examType.toUpperCase()} Exam
+**Difficulty**: ${difficulty}
+**Bloom Focus**: ${bloomTaxonomy}
+**Question Marks**: ${qTypes.join(', ')}
+**Status**: Provider Temporarily Unavailable
+
+## Section A: Short Questions (2 Marks)
+* AI service is temporarily unavailable. Please try again shortly.
+
+## Section B: Essay Questions (10 Marks)
+* AI service is temporarily unavailable. Please try again shortly.
+
+# DIVISION II: ANSWER KEY & SCHEME
+* Status: Pending AI Service Re-connection.`;
+    }
 
     const sourceCitations = sourceDocuments.length > 0 ? sourceDocuments : ['General AI Knowledge'];
 
@@ -436,10 +534,18 @@ Topics: ${topics.join(', ')}
 Course Duration: ${duration}
 ${contextBlock ? `\nContext notes:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateLessonPlanService failed: ${e.message}`);
+        content = `### Lesson Plan for ${subject}
+**Status**: Provider Temporarily Unavailable
+- Notice: Lesson plan generation is temporarily unavailable. Please retry shortly.`;
+    }
 
     const planDoc = await AILessonPlan.create({
         user: userId,
@@ -474,10 +580,20 @@ Format as Markdown.`;
     const userPrompt = `Notice Brief/Information: ${topic}
 ${contextBlock ? `\nContext documentation:\n${contextBlock}` : ''}`;
 
-    const content = await callAI([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-    ]);
+    let content = '';
+    try {
+        content = await callAI([
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ], userId);
+    } catch (e: any) {
+        console.warn(`[AI Generator Fallback] generateNoticeReportService failed: ${e.message}`);
+        content = `# Official Academic ${type.toUpperCase()}
+**Topic**: ${topic}
+**Status**: Provider Temporarily Unavailable
+
+Notice generation for "${topic}" could not be completed at this time due to upstream AI availability. Please retry shortly.`;
+    }
 
     const noticeDoc = await AINotice.create({
         user: userId,
@@ -490,7 +606,7 @@ ${contextBlock ? `\nContext documentation:\n${contextBlock}` : ''}`;
 };
 
 // 10. Intent detection classifier
-export const classifyIntent = async (prompt: string, role: string): Promise<{ intent: string; params: any }> => {
+export const classifyIntent = async (prompt: string, role: string, userId?: string): Promise<{ intent: string; params: any }> => {
     const classificationPrompt = `You are an intent detection classifier for an academic AI platform.
 Analyze the user's prompt and determine if they want to generate an academic item.
 Note that the user has the role: '${role}'.
@@ -543,7 +659,7 @@ Format the response strictly as a JSON object, with no markdown styling (i.e. do
         const response = await callAI([
             { role: 'system', content: classificationPrompt },
             { role: 'user', content: prompt }
-        ]);
+        ], userId);
         const cleaned = cleanJsonResponse(response);
         return {
             intent: cleaned.intent || 'general-chat',

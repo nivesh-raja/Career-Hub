@@ -31,6 +31,9 @@ export interface IInterventionAction extends Document {
   startedAt?: Date;
   completedAt?: Date;
   dismissedAt?: Date;
+  baselineValue?: any;
+  baselineRiskLevel?: string;
+  baselineTrend?: string;
 }
 
 const InterventionActionSchema: Schema = new Schema(
@@ -121,6 +124,17 @@ const InterventionActionSchema: Schema = new Schema(
     },
     dismissedAt: {
       type: Date,
+    },
+    baselineValue: {
+      type: Schema.Types.Mixed,
+    },
+    baselineRiskLevel: {
+      type: String,
+      trim: true,
+    },
+    baselineTrend: {
+      type: String,
+      trim: true,
     },
   },
   {
